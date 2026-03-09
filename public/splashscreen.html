@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoBI - Splash Screen</title>
+    <style>
+        :root {
+            --green-1: #2d6a30; /* Barre gauche */
+            --green-2: #388e3c; /* Barre milieu */
+            --green-3: #1b431e; /* Barre droite */
+            --line-color: #52b788;
+            --bg-color: #f0f2f5; /* Un gris très clair, doux */
+            --splash-width: 600px;
+            --splash-height: 400px;
+            --breathing-duration: 3s; /* Durée de l'animation de respiration */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #e0e0e0; /* Un fond derrière la "fenêtre" */
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden; /* Pour éviter les scrollbars */
+        }
+
+        /* Le conteneur du splash screen qui simule la petite fenêtre */
+        .splash-window {
+            width: var(--splash-width);
+            height: var(--splash-height);
+            background-color: var(--bg-color);
+            border-radius: 15px; /* Coins arrondis pour la fenêtre */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); /* Ombre douce et profonde */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            animation: fadeInWindow 0.8s ease-out forwards;
+        }
+
+        /* Conteneur du logo, qui sera animé */
+        .logo-container {
+            position: relative;
+            width: 150px; /* Taille initiale du logo */
+            height: 180px;
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            animation: breathing var(--breathing-duration) ease-in-out infinite; /* Animation de respiration */
+            transform-origin: bottom center; /* Le logo respire à partir de sa base */
+        }
+
+        /* Styles des barres du logo */
+        .bar {
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* Ombre subtile pour chaque barre */
+        }
+
+        .bar-left {
+            width: 70px;
+            height: 100px;
+            background-color: var(--green-1);
+            z-index: 3;
+            margin-right: -25px;
+        }
+
+        .bar-center {
+            width: 60px;
+            height: 140px;
+            background-color: var(--green-2);
+            z-index: 2;
+            margin-right: -20px;
+        }
+
+        .bar-right {
+            width: 55px;
+            height: 180px;
+            background-color: var(--green-3);
+            z-index: 1;
+        }
+
+        /* Lignes internes pour un détail fidèle */
+        .bar::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(0deg, transparent 96%, rgba(255,255,255,0.1) 96%);
+            background-size: 100% 30px;
+        }
+
+        /* SVG de la courbe */
+        .curve-svg {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            overflow: visible;
+        }
+
+        .path-line {
+            fill: none;
+            stroke: var(--line-color);
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .dot {
+            fill: var(--line-color);
+            stroke: var(--bg-color);
+            stroke-width: 2;
+        }
+
+        /* Texte du titre */
+        .splash-title {
+            margin-top: 30px;
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--green-3);
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            animation: fadeInText 1s ease-out 0.5s forwards; /* Apparition décalée */
+            opacity: 0;
+        }
+
+        /* --- KEYFRAMES --- */
+
+        @keyframes fadeInWindow {
+            from { opacity: 0; transform: scale(0.8) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes breathing {
+            0%, 100% {
+                transform: scale(1);
+                filter: brightness(1); /* luminosité normale */
+            }
+            50% {
+                transform: scale(1.05); /* grossit légèrement */
+                filter: brightness(1.1); /* devient plus lumineux */
+            }
+        }
+
+        @keyframes fadeInText {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="splash-window bg-base-200">
+        <div class="logo-container">
+            <div class="bar bar-left"></div>
+            <div class="bar bar-center"></div>
+            <div class="bar bar-right"></div>
+
+            <svg class="curve-svg" viewBox="0 0 150 180">
+                <path class="path-line" d="M8,140 L40,115 L75,130 L110,90 L142,85" />
+                
+                <circle class="dot" cx="8" cy="140" r="3" />
+                <circle class="dot" cx="40" cy="115" r="3" />
+                <circle class="dot" cx="75" cy="130" r="3" />
+                <circle class="dot" cx="110" cy="90" r="3" />
+                <circle class="dot" cx="142" cy="85" r="3" />
+            </svg>
+        </div>
+
+    </div>
+
+</body>
+</html>
