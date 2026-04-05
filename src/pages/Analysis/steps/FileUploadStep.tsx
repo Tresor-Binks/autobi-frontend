@@ -1,5 +1,6 @@
 /**
  * ÉTAPE 1 : SÉLECTION DU FICHIER EXCEL
+<<<<<<< HEAD
  */
 
 import React, { useState } from 'react';
@@ -18,17 +19,40 @@ export const FileUploadStep: React.FC<FileUploadStepProps> = ({
 }) => {
   const { isAuthenticated } = useAuth();
 
+=======
+ * 
+ * Permet à l'utilisateur de sélectionner un fichier Excel/CSV.
+ * Affiche les informations du fichier et valide le format.
+ */
+
+import React, { useState } from 'react';
+import { Upload, FileSpreadsheet, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { analysisApi, FileValidationResponse } from '../api/analysisApi';
+
+interface FileUploadStepProps {
+  onFileValidated: (file: File, validation: FileValidationResponse) => void;
+}
+
+export const FileUploadStep: React.FC<FileUploadStepProps> = ({ onFileValidated }) => {
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [validation, setValidation] = useState<FileValidationResponse | null>(null);
   const [isValidating, setIsValidating] = useState(false);
 
+<<<<<<< HEAD
   const handleFileSelect = async (selectedFile: File) => {
     if (!isAuthenticated) {
       onRequestAuth();
       return;
     }
 
+=======
+  /**
+   * Gestion de la sélection de fichier
+   */
+  const handleFileSelect = async (selectedFile: File) => {
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
     setFile(selectedFile);
     setValidation(null);
     setIsValidating(true);
@@ -36,6 +60,10 @@ export const FileUploadStep: React.FC<FileUploadStepProps> = ({
     try {
       const result = await analysisApi.validateFile(selectedFile);
       setValidation(result);
+<<<<<<< HEAD
+=======
+
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
       if (result.valid) {
         onFileValidated(selectedFile, result);
       }
@@ -46,6 +74,7 @@ export const FileUploadStep: React.FC<FileUploadStepProps> = ({
     }
   };
 
+<<<<<<< HEAD
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
@@ -106,6 +135,21 @@ export const FileUploadStep: React.FC<FileUploadStepProps> = ({
   // ============================================================
   // CAS : CONNECTÉ
   // ============================================================
+=======
+  /**
+   * Gestion du drag & drop
+   */
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile) {
+      handleFileSelect(droppedFile);
+    }
+  };
+
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
   return (
     <div className="space-y-6">
       <div>
@@ -115,6 +159,10 @@ export const FileUploadStep: React.FC<FileUploadStepProps> = ({
         </p>
       </div>
 
+<<<<<<< HEAD
+=======
+      {/* Zone de drop */}
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
       {!file && (
         <div
           onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -134,12 +182,20 @@ export const FileUploadStep: React.FC<FileUploadStepProps> = ({
             className="hidden"
             id="file-upload"
           />
+<<<<<<< HEAD
           <label htmlFor="file-upload" className="btn btn-success cursor-pointer">
+=======
+          <label htmlFor="file-upload" className="btn btn-success">
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
             Parcourir les fichiers
           </label>
         </div>
       )}
 
+<<<<<<< HEAD
+=======
+      {/* Fichier sélectionné */}
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
       {file && (
         <div className="card bg-base-100 border border-base-300 shadow-sm">
           <div className="card-body">
@@ -175,7 +231,14 @@ export const FileUploadStep: React.FC<FileUploadStepProps> = ({
               </div>
 
               <button
+<<<<<<< HEAD
                 onClick={() => { setFile(null); setValidation(null); }}
+=======
+                onClick={() => {
+                  setFile(null);
+                  setValidation(null);
+                }}
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
                 className="btn btn-ghost btn-sm"
               >
                 Changer

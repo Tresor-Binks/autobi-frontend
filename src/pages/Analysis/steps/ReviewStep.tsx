@@ -1,10 +1,16 @@
 /**
+<<<<<<< HEAD
  * ÉTAPE 4 : CONFIRMATION & RÉVISION
  *
+=======
+ * ÉTAPE 5 : CONFIRMATION & RÉVISION
+ * 
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
  * Récapitulatif complet avant le lancement de l'analyse :
  * - Fichier sélectionné
  * - Colonnes détectées
  * - Insights choisis
+<<<<<<< HEAD
  * - Coût en jetons + vérification du solde
  */
 
@@ -21,6 +27,19 @@ import {
 } from 'lucide-react';
 import { SuggestedInsight, Column, FileValidationResponse } from '../api/analysisApi';
 import { useAuth } from '../../../hooks/useAuth';
+=======
+ */
+
+import React from 'react';
+import { 
+  FileSpreadsheet, 
+  Database, 
+  Sparkles, 
+  CheckCircle2,
+  Play
+} from 'lucide-react';
+import { SuggestedInsight, Column, FileValidationResponse } from '../api/analysisApi';
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
 
 interface ReviewStepProps {
   file: File;
@@ -30,6 +49,7 @@ interface ReviewStepProps {
   onConfirm: () => void;
 }
 
+<<<<<<< HEAD
 /**
  * Calcule le coût en jetons selon la taille du fichier.
  * - Arrondi à la dizaine supérieure (ex: 23Ko → 30Ko)
@@ -44,6 +64,8 @@ function calculateTokenCost(fileSizeBytes: number): number {
   return roundedKo / 10;
 }
 
+=======
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
 export const ReviewStep: React.FC<ReviewStepProps> = ({
   file,
   fileValidation,
@@ -51,12 +73,15 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
   selectedInsights,
   onConfirm
 }) => {
+<<<<<<< HEAD
   const { user } = useAuth();
 
   const tokenCost = useMemo(() => calculateTokenCost(file.size), [file.size]);
   const userBalance = user?.token_balance ?? 0;
   const hasEnoughTokens = userBalance >= tokenCost;
 
+=======
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
   return (
     <div className="space-y-6">
       <div>
@@ -73,6 +98,10 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
             <FileSpreadsheet className="text-success" size={28} />
             <h3 className="text-xl font-semibold">Fichier</h3>
           </div>
+<<<<<<< HEAD
+=======
+
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <p className="text-sm text-base-content/60 mb-1">Nom</p>
@@ -80,7 +109,11 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
             </div>
             <div>
               <p className="text-sm text-base-content/60 mb-1">Taille</p>
+<<<<<<< HEAD
               <p className="font-semibold">{(file.size / 1024).toFixed(1)} Ko</p>
+=======
+              <p className="font-semibold">{(file.size / 1024).toFixed(2)} Ko</p>
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
             </div>
             <div>
               <p className="text-sm text-base-content/60 mb-1">Feuilles</p>
@@ -104,6 +137,10 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
             <Database className="text-success" size={28} />
             <h3 className="text-xl font-semibold">Structure des données</h3>
           </div>
+<<<<<<< HEAD
+=======
+
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {columns.map((col, idx) => (
               <div key={idx} className="p-3 bg-base-200 rounded-md">
@@ -112,6 +149,10 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
               </div>
             ))}
           </div>
+<<<<<<< HEAD
+=======
+
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
           <div className="mt-4 text-sm text-base-content/60">
             Total : {columns.length} colonne{columns.length > 1 ? 's' : ''}
           </div>
@@ -127,9 +168,19 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
               Insights sélectionnés ({selectedInsights.length})
             </h3>
           </div>
+<<<<<<< HEAD
           <div className="space-y-2">
             {selectedInsights.map((insight, idx) => (
               <div key={insight.id} className="flex items-start gap-3 p-3 bg-base-200 rounded-md">
+=======
+
+          <div className="space-y-2">
+            {selectedInsights.map((insight, idx) => (
+              <div
+                key={insight.id}
+                className="flex items-start gap-3 p-3 bg-base-200 rounded-md"
+              >
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
                 <span className="badge badge-success">{idx + 1}</span>
                 <div className="flex-1">
                   <p className="font-semibold mb-1">{insight.title}</p>
@@ -141,6 +192,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
         </div>
       </div>
 
+<<<<<<< HEAD
       {/* Coût en jetons */}
       <div className={`card border shadow-sm ${
         hasEnoughTokens
@@ -240,6 +292,29 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
             Acheter des jetons pour continuer
           </a>
         )}
+=======
+      {/* Informations */}
+      <div className="alert border border-info/30 bg-info/5">
+        <CheckCircle2 className="text-info" />
+        <div>
+          <h4 className="font-semibold">Prêt pour l'analyse</h4>
+          <p className="text-sm">
+            L'analyse générera un dashboard interactif avec les {selectedInsights.length} insights sélectionnés.
+            Cette opération prendra environ 30 secondes.
+          </p>
+        </div>
+      </div>
+
+      {/* Bouton de confirmation */}
+      <div className="flex justify-center pt-4">
+        <button
+          onClick={onConfirm}
+          className="btn btn-success btn-lg"
+        >
+          <Play size={20} />
+          Lancer l'analyse
+        </button>
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
       </div>
     </div>
   );

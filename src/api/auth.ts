@@ -8,7 +8,11 @@ import axios from 'axios';
 import type { LoginCredentials, RegisterData, AuthResponse, AuthUser } from './types';
 
 // URL du backend (à configurer selon l'environnement)
+<<<<<<< HEAD
 const API_BASE_URL = import.meta.env.VITE_API_URL || '127.0.0.1:8000';
+=======
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
 
 class AuthApiService {
   private baseURL = `${API_BASE_URL}/auth`;
@@ -18,6 +22,7 @@ class AuthApiService {
    * POST /auth/login
    */
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
+<<<<<<< HEAD
   try {
     const response = await axios.post(`${this.baseURL}/login`, {
       email: credentials.email,
@@ -48,12 +53,29 @@ class AuthApiService {
     throw new Error('Erreur lors de la connexion');
   }
 }
+=======
+    try {
+      const response = await axios.post(`${this.baseURL}/login`, {
+        email: credentials.email,
+        password: credentials.password
+      });
+
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.data?.detail) {
+        throw new Error(error.response.data.detail);
+      }
+      throw new Error('Erreur lors de la connexion');
+    }
+  }
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
 
   /**
    * INSCRIPTION
    * POST /auth/register
    */
   async register(data: RegisterData): Promise<AuthResponse> {
+<<<<<<< HEAD
   try {
     const response = await axios.post(`${this.baseURL}/register`, {
       email: data.email,
@@ -86,6 +108,24 @@ class AuthApiService {
     throw new Error('Erreur lors de l\'inscription');
   }
 }
+=======
+    try {
+      const response = await axios.post(`${this.baseURL}/register`, {
+        email: data.email,
+        password: data.password,
+        first_name: data.firstName,
+        last_name: data.lastName
+      });
+
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.data?.detail) {
+        throw new Error(error.response.data.detail);
+      }
+      throw new Error('Erreur lors de l\'inscription');
+    }
+  }
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
 
   /**
    * RÉCUPÉRATION DE L'UTILISATEUR ACTUEL

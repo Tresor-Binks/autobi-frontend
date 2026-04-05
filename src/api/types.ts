@@ -99,6 +99,7 @@ export interface AuthResponse {
   user: AuthUser;
   token: string;
   expires_at: string;
+<<<<<<< HEAD
 }
 
 export interface FileValidationResponse {
@@ -108,4 +109,6 @@ export interface FileValidationResponse {
   sheetCount: number;
   errors?: string[];
   warnings?: string[];  // ← ajouter
+=======
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
 }

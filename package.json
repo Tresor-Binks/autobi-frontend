@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "axios": "^1.13.3",
+<<<<<<< HEAD
     "chart.js": "^4.5.1",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
@@ -23,6 +24,12 @@
     "react-router-dom": "^6.20.0",
     "react-to-print": "^3.3.0",
     "zustand": "^5.0.12"
+=======
+    "lucide-react": "^0.294.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.0"
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.10.0",
@@ -34,6 +41,10 @@
     "postcss": "^8.4.32",
     "tailwindcss": "^3.3.6",
     "typescript": "^5.2.2",
+<<<<<<< HEAD
     "vite": "^7.3.1"
+=======
+    "vite": "^5.0.8"
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
   }
 }

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /**
  * TOPBAR avec système de notifications
  */
@@ -314,6 +315,16 @@ const NotificationBell: React.FC = () => {
 export const TopBar: React.FC<{ theme: string; onThemeToggle: () => void }> = ({ theme, onThemeToggle }) => {
   const { isAuthenticated, user, logout } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+=======
+import React, { useState } from 'react';
+import { Moon, Sun, Bell, User, LogOut } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth'; // ← AJOUTER
+import { AuthModal } from '../components/auth/AuthModal'; // ← AJOUTER
+
+export const TopBar: React.FC<{ theme: string; onThemeToggle: () => void }> = ({ theme, onThemeToggle }) => {
+  const { isAuthenticated, user, logout } = useAuth(); // ← AJOUTER
+  const [showAuthModal, setShowAuthModal] = useState(false); // ← AJOUTER
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
 
   const handleLogout = async () => {
     if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
@@ -323,6 +334,7 @@ export const TopBar: React.FC<{ theme: string; onThemeToggle: () => void }> = ({
 
   return (
     <>
+<<<<<<< HEAD
       <div className="bg-base-100 border-b border-base-300 px-6 py-3 flex items-center justify-end gap-3">
 
         {/* Thème */}
@@ -334,6 +346,18 @@ export const TopBar: React.FC<{ theme: string; onThemeToggle: () => void }> = ({
         <NotificationBell />
 
         {/* Utilisateur */}
+=======
+      <div className="bg-base-100 border-b border-base-300 px-6 py-3 flex items-center justify-end gap-4">
+        <button onClick={onThemeToggle} className="btn btn-ghost btn-sm btn-square">
+          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
+        
+        <button className="btn btn-ghost btn-sm btn-square">
+          <Bell size={18} />
+        </button>
+
+        {/* ← MODIFIER : Menu utilisateur ou bouton connexion */}
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
         {isAuthenticated && user ? (
           <div className="dropdown dropdown-end">
             <button className="btn btn-ghost btn-sm btn-circle">
@@ -344,6 +368,7 @@ export const TopBar: React.FC<{ theme: string; onThemeToggle: () => void }> = ({
                 <span>{user.firstName} {user.lastName}</span>
               </li>
               <li><a href="/profile">Mon profil</a></li>
+<<<<<<< HEAD
               <li>
                 <button onClick={handleLogout}>
                   <LogOut size={16} /> Déconnexion
@@ -353,6 +378,13 @@ export const TopBar: React.FC<{ theme: string; onThemeToggle: () => void }> = ({
           </div>
         ) : (
           <button
+=======
+              <li><button onClick={handleLogout}><LogOut size={16} /> Déconnexion</button></li>
+            </ul>
+          </div>
+        ) : (
+          <button 
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
             onClick={() => setShowAuthModal(true)}
             className="btn btn-success btn-sm"
           >
@@ -361,10 +393,20 @@ export const TopBar: React.FC<{ theme: string; onThemeToggle: () => void }> = ({
         )}
       </div>
 
+<<<<<<< HEAD
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
       />
     </>
   );
+=======
+      {/* ← AJOUTER :Modale d'authentification */}
+<AuthModal
+isOpen={showAuthModal}
+onClose={() => setShowAuthModal(false)}
+/>
+</>
+);
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
 };

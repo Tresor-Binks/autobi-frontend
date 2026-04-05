@@ -1,9 +1,22 @@
 /**
  * MODALE D'AUTHENTIFICATION
+<<<<<<< HEAD
  */
 
 import React, { useState } from 'react';
 import { X, Mail, Lock, User, AlertCircle, CheckCircle2, Coins } from 'lucide-react';
+=======
+ * 
+ * Modale DaisyUI avec deux onglets :
+ * - Connexion
+ * - Inscription
+ * 
+ * Compatible web et desktop (WebView)
+ */
+
+import React, { useState } from 'react';
+import { X, Mail, Lock, User, AlertCircle, CheckCircle2 } from 'lucide-react';
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
 import { useAuth } from '../../hooks/useAuth';
 import type { LoginCredentials, RegisterData } from '../../api/types';
 
@@ -13,10 +26,17 @@ interface AuthModalProps {
   defaultTab?: 'login' | 'register';
 }
 
+<<<<<<< HEAD
 export const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
   onClose,
   defaultTab = 'login'
+=======
+export const AuthModal: React.FC<AuthModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  defaultTab = 'login' 
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
 }) => {
   const { login, register } = useAuth();
 
@@ -24,13 +44,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+<<<<<<< HEAD
   const [isNewUser, setIsNewUser] = useState(false);
 
+=======
+
+  // Formulaire de connexion
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
   const [loginForm, setLoginForm] = useState<LoginCredentials>({
     email: '',
     password: ''
   });
 
+<<<<<<< HEAD
+=======
+  // Formulaire d'inscription
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
   const [registerForm, setRegisterForm] = useState<RegisterData>({
     firstName: '',
     lastName: '',
@@ -38,19 +67,39 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     password: ''
   });
 
+<<<<<<< HEAD
+=======
+  /**
+   * Reset des formulaires
+   */
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
   const resetForms = () => {
     setLoginForm({ email: '', password: '' });
     setRegisterForm({ firstName: '', lastName: '', email: '', password: '' });
     setError(null);
     setSuccess(null);
+<<<<<<< HEAD
     setIsNewUser(false);
   };
 
+=======
+  };
+
+  /**
+   * Fermeture de la modale
+   */
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
   const handleClose = () => {
     resetForms();
     onClose();
   };
 
+<<<<<<< HEAD
+=======
+  /**
+   * Gestion de la connexion
+   */
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -59,9 +108,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
     try {
       await login(loginForm);
+<<<<<<< HEAD
       setIsNewUser(false);
       setSuccess('Connexion réussie !');
       setTimeout(() => handleClose(), 1000);
+=======
+      setSuccess('Connexion réussie !');
+      setTimeout(() => {
+        handleClose();
+      }, 1000);
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur de connexion');
     } finally {
@@ -69,6 +125,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
+<<<<<<< HEAD
+=======
+  /**
+   * Gestion de l'inscription
+   */
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -77,9 +139,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
     try {
       await register(registerForm);
+<<<<<<< HEAD
       setIsNewUser(true);
       setSuccess('Compte créé avec succès !');
       setTimeout(() => handleClose(), 3000);
+=======
+      setSuccess('Compte créé avec succès !');
+      setTimeout(() => {
+        handleClose();
+      }, 1000);
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur lors de l\'inscription');
     } finally {
@@ -91,8 +160,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   return (
     <>
+<<<<<<< HEAD
       <div className="fixed inset-0 bg-black/50 z-50" onClick={handleClose}></div>
 
+=======
+      {/* Overlay */}
+      <div className="fixed inset-0 bg-black/50 z-50" onClick={handleClose}></div>
+
+      {/* Modale */}
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div className="card bg-base-100 w-full max-w-md shadow-xl" onClick={(e) => e.stopPropagation()}>
           <div className="card-body">
@@ -101,7 +177,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <h2 className="text-2xl font-bold">
                 {activeTab === 'login' ? 'Connexion' : 'Inscription'}
               </h2>
+<<<<<<< HEAD
               <button onClick={handleClose} className="btn btn-ghost btn-sm btn-circle">
+=======
+              <button
+                onClick={handleClose}
+                className="btn btn-ghost btn-sm btn-circle"
+              >
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
                 <X size={20} />
               </button>
             </div>
@@ -122,7 +205,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
             </div>
 
+<<<<<<< HEAD
             {/* Erreur */}
+=======
+            {/* Alerts */}
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
             {error && (
               <div className="alert alert-error mb-4">
                 <AlertCircle size={20} />
@@ -130,14 +217,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </div>
             )}
 
+<<<<<<< HEAD
             {/* Succès connexion */}
             {success && !isNewUser && (
+=======
+            {success && (
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
               <div className="alert alert-success mb-4">
                 <CheckCircle2 size={20} />
                 <span>{success}</span>
               </div>
             )}
 
+<<<<<<< HEAD
             {/* Succès inscription — message spécial avec jetons */}
             {success && isNewUser && (
               <div className="alert alert-success mb-4 flex-col items-start gap-2">
@@ -155,6 +247,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             )}
 
             {/* Formulaire connexion */}
+=======
+            {/* Formulaire de connexion */}
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
             {activeTab === 'login' && (
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="form-control">
@@ -193,14 +288,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   </div>
                 </div>
 
+<<<<<<< HEAD
                 <button type="submit" disabled={isLoading} className="btn btn-success w-full">
                   {isLoading ? (
                     <><span className="loading loading-spinner loading-sm"></span>Connexion...</>
                   ) : 'Se connecter'}
+=======
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="btn btn-success w-full"
+                >
+                  {isLoading ? (
+                    <>
+                      <span className="loading loading-spinner loading-sm"></span>
+                      Connexion...
+                    </>
+                  ) : (
+                    'Se connecter'
+                  )}
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
                 </button>
               </form>
             )}
 
+<<<<<<< HEAD
             {/* Formulaire inscription */}
             {activeTab === 'register' && (
               <form onSubmit={handleRegister} className="space-y-4">
@@ -215,6 +327,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   </div>
                 )}
 
+=======
+            {/* Formulaire d'inscription */}
+            {activeTab === 'register' && (
+              <form onSubmit={handleRegister} className="space-y-4">
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
                 <div className="grid grid-cols-2 gap-4">
                   <div className="form-control">
                     <label className="label">
@@ -226,7 +343,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         type="text"
                         value={registerForm.firstName}
                         onChange={(e) => setRegisterForm({ ...registerForm, firstName: e.target.value })}
+<<<<<<< HEAD
                         placeholder="Prénom"
+=======
+                        placeholder="Trésor"
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
                         className="input input-bordered w-full pl-10"
                         required
                         disabled={isLoading}
@@ -242,7 +363,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       type="text"
                       value={registerForm.lastName}
                       onChange={(e) => setRegisterForm({ ...registerForm, lastName: e.target.value })}
+<<<<<<< HEAD
                       placeholder="Nom"
+=======
+                      placeholder="Makosso"
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
                       className="input input-bordered w-full"
                       required
                       disabled={isLoading}
@@ -290,10 +415,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   </label>
                 </div>
 
+<<<<<<< HEAD
                 <button type="submit" disabled={isLoading} className="btn btn-success w-full">
                   {isLoading ? (
                     <><span className="loading loading-spinner loading-sm"></span>Création...</>
                   ) : 'Créer un compte'}
+=======
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="btn btn-success w-full"
+                >
+                  {isLoading ? (
+                    <>
+                      <span className="loading loading-spinner loading-sm"></span>
+                      Création...
+                    </>
+                  ) : (
+                    'Créer un compte'
+                  )}
+>>>>>>> fb232e57f9317dd922dada12a956e55d7fd256c3
                 </button>
               </form>
             )}
