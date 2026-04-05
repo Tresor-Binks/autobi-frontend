@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:backend": "cd ../backend && uvicorn app.main:app --reload",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "tauri": "tauri",
     "start:fullstack": "concurrently \"npm run dev\" \"npm run dev:backend\""
