@@ -36,8 +36,21 @@ function getAuthHeaders() {
 }
 
 async function fetchAnalysis(id: string) {
-  const res = await fetch(`${BASE_URL}/analysis/${id}`, { headers: getAuthHeaders() });
-  if (!res.ok) throw new Error('Analyse introuvable');
+  // On s'assure que les headers sont toujours un objet valide
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...getAuthHeaders() as Record<string, string>
+  };
+
+  const res = await fetch(`${BASE_URL}/analysis/${id}`, { 
+    headers: headers 
+  });
+
+  if (!res.ok) {
+    if (res.status === 401) throw new Error('Session expirée, veuillez vous reconnecter');
+    throw new Error('Analyse introuvable');
+  }
+  
   return res.json();
 }
 
