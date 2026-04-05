@@ -8,7 +8,7 @@ import axios from 'axios';
 import type { LoginCredentials, RegisterData, AuthResponse, AuthUser } from './types';
 
 // URL du backend (à configurer selon l'environnement)
-const API_BASE_URL = import.meta.env.VITE_API_URL || '127.0.0.1:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'autobi-backend-production.up.railway.app';
 
 class AuthApiService {
   private baseURL = `${API_BASE_URL}/auth`;
