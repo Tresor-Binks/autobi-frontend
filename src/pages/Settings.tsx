@@ -121,32 +121,6 @@ export const Settings: React.FC = () => {
           </div>
         </div>
 
-        {/* Compte */}
-        <div className="card bg-base-100 border border-base-300 shadow-sm">
-          <div className="card-body">
-            <h2 className="text-xl font-semibold mb-4">Informations du compte</h2>
-
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between py-2 border-b border-base-300">
-                <span className="text-base-content/60">Email</span>
-                <span className="font-medium">utilisateur@example.com</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-base-300">
-                <span className="text-base-content/60">Plan</span>
-                <span className="font-medium">Gratuit</span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-base-content/60">Membre depuis</span>
-                <span className="font-medium">Janvier 2026</span>
-              </div>
-            </div>
-
-            <button className="btn btn-outline btn-sm mt-4">
-              Modifier le profil
-            </button>
-          </div>
-        </div>
-
         {/* À propos */}
         <div className="card bg-base-100 border border-base-300 shadow-sm">
           <div className="card-body text-sm text-base-content/70">
