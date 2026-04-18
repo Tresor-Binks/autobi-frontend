@@ -36,30 +36,6 @@ export const Home: React.FC = () => {
   const navigate = useNavigate();
 
   /**
-   * Données mockées des dernières analyses
-   */
-  const recentAnalyses = [
-    { 
-      id: 1, 
-      filename: 'Ventes_Q4_2025.xlsx', 
-      date: '2026-01-24', 
-      status: 'Terminée' 
-    },
-    { 
-      id: 2, 
-      filename: 'Budget_Marketing.xlsx', 
-      date: '2026-01-23', 
-      status: 'Terminée' 
-    },
-    { 
-      id: 3, 
-      filename: 'Statistiques_RH.xlsx', 
-      date: '2026-01-22', 
-      status: 'Terminée' 
-    },
-  ];
-
-  /**
    * Fonctionnalités principales de l'application
    */
   const features = [
@@ -290,64 +266,6 @@ export const Home: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
-
-
-        {/* ================================================================
-            SECTION  : DERNIÈRES ANALYSES RÉCENTES
-            ================================================================ */}
-        <section>
-          <div className="card bg-base-100 border border-base-300 shadow-sm">
-            <div className="card-body">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <Clock className="text-success" size={28} />
-                  <h2 className="text-2xl font-semibold">Dernières analyses</h2>
-                </div>
-                <button 
-                  onClick={() => navigate('/history')}
-                  className="btn btn-ghost btn-sm"
-                >
-                  Voir l'historique complet
-                </button>
-              </div>
-
-              {recentAnalyses.length === 0 ? (
-                <div className="text-center py-8 text-base-content/60">
-                  <History className="mx-auto mb-3 opacity-40" size={40} />
-                  <p>Aucune analyse récente</p>
-                  <p className="text-sm">Lancez votre première analyse pour commencer</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {recentAnalyses.map((analysis) => (
-                    <div 
-                      key={analysis.id}
-                      className="flex items-center justify-between p-4 bg-base-200 rounded-md hover:bg-base-300 transition-colors cursor-pointer"
-                      onClick={() => navigate('/history')}
-                    >
-                      <div className="flex items-center gap-4">
-                        <FileSpreadsheet className="text-success" size={24} />
-                        <div>
-                          <h3 className="font-semibold">{analysis.filename}</h3>
-                          <p className="text-sm text-base-content/60">
-                            {new Date(analysis.date).toLocaleDateString('fr-FR', {
-                              day: '2-digit',
-                              month: 'long',
-                              year: 'numeric'
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                      <span className="badge badge-success badge-sm">
-                        {analysis.status}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
         </section>
