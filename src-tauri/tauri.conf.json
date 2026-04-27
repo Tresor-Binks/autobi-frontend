@@ -16,6 +16,8 @@
         "url": "splashscreen.html",
         "width": 600,
         "height": 400,
+        "minWidth": 600,
+        "minHeight": 400,
         "resizable": false,
         "visible": true,
         "decorations": false,

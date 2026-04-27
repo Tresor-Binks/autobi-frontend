@@ -1,7 +1,4 @@
-// Prevents additional console window on Windows in release, DO NOT REMOVE!!
-// #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-
-use tauri::{Manager};
+use tauri::{Manager, LogicalSize}; 
 
 fn main() {
   tauri::Builder::default()
@@ -13,20 +10,18 @@ fn main() {
         std::thread::spawn(move || {
           std::thread::sleep(std::time::Duration::from_secs(2));
 
-          // 1. Afficher la fenêtre principale
+          // 2. Définir la taille minimale avant ou après le show()
+          // Ici on met par exemple 800x600
+          main.set_min_size(Some(LogicalSize::new(600.0, 400.0))).unwrap();
+
           main.show().unwrap();
-
           main.maximize().unwrap();
-
-          // 2. Lui donner le focus
           main.set_focus().unwrap();
 
-          // 3. La mettre temporairement au premier plan
           main.set_always_on_top(true).unwrap();
           std::thread::sleep(std::time::Duration::from_millis(200));
           main.set_always_on_top(false).unwrap();
 
-          // 4. Fermer la splash
           splash.close().unwrap();
         });
       }
