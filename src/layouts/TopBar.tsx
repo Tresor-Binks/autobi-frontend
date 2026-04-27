@@ -251,9 +251,8 @@ export const TopBar: React.FC<{ theme: string; onThemeToggle: () => void }> = ({
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleLogout = async () => {
-    if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
-      await logout();
-    }
+    await logout();
+    
   };
 
   return (

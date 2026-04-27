@@ -413,21 +413,17 @@ class AnalysisApiService {
   // ÉTAPE 5 : Lancement — retourne l'ID déjà connu
   // -----------------------------------------------------------------------
   async runAnalysis(file: File, selectedInsights: SuggestedInsight[]): Promise<AnalysisRunResponse> {
-    if (this.currentAnalysisId) {
-      return {
-        analysisId: String(this.currentAnalysisId),
-        status: 'processing',
-      };
+    if (!this.currentAnalysisId) {
+      throw new Error('Aucune analyse en attente. Veuillez recommencer depuis le début.');
     }
-    const analyses = await apiFetch<any[]>('/analysis/');
-    const latest = analyses[0];
-    if (latest) {
-      return {
-        analysisId: String(latest.id),
-        status: latest.status?.toLowerCase() === 'completed' ? 'completed' : 'processing',
-      };
-    }
-    throw new Error('Aucune analyse trouvée');
+    // /confirm : vérifie le solde, déduit les tokens, lance l’analyse
+    const result = await apiFetch<any>(`/analysis/${this.currentAnalysisId}/confirm`, {
+      method: 'POST',
+    });
+    return {
+      analysisId: String(result.analysis_id),
+      status: 'processing',
+    };
   }
 
   // -----------------------------------------------------------------------
