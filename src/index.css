@@ -21,3 +21,24 @@ body {
   width: 100%;
   height: 100vh;
 }
+
+/* Masque l'app sur petits écrans */
+#mobile-block {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  #root {
+    display: none;
+  }
+  #mobile-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    padding: 2rem;
+    text-align: center;
+    background: #f9fafb;
+  }
+}

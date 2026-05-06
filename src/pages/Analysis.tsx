@@ -21,7 +21,7 @@ import {
 import { useAuth } from '../hooks/useAuth';
 import { useLayoutContext } from '../layouts/MainLayout';
 
-type Step = 1 | 2 | 3 | 4 | 5 | 6;
+type Step = 1 | 2 | 3 | 4 | 5;
 
 interface StepConfig {
   number: Step;
@@ -48,12 +48,14 @@ export const Analysis: React.FC = () => {
   const [analysisId, setAnalysisId] = useState<string | null>(null);
 
   const steps: StepConfig[] = [
-    { number: 1, label: 'Fichier', description: 'Sélection' },
-    { number: 2, label: 'Structure', description: 'Validation' },
-    { number: 3, label: 'Insights', description: 'Sélection' },
-    { number: 4, label: 'Révision', description: 'Confirmation' },
-    { number: 5, label: 'Analyse', description: 'Traitement' }
+    { number: 1, label: 'Fichier',   description: 'Sélection'    },
+    { number: 2, label: 'Structure', description: 'Validation'   },
+    { number: 3, label: 'Insights',  description: 'Sélection'    },
+    { number: 4, label: 'Révision',  description: 'Confirmation' },
+    { number: 5, label: 'Analyse',   description: 'Traitement'   },
   ];
+
+  // ── HANDLERS ────────────────────────────────────────────────────────────────
 
   const handleFileValidated = (file: File, validation: FileValidationResponse) => {
     setSelectedFile(file);
@@ -89,16 +91,14 @@ export const Analysis: React.FC = () => {
       return;
     }
 
-    setCurrentStep(5);
-
     try {
+      // Lance /confirm avec les insights sélectionnés, passe directement au suivi
       const result = await analysisApi.runAnalysis(selectedFile, selectedInsights);
       setAnalysisId(result.analysisId);
-      setCurrentStep(6);
-    } catch (error) {
+      setCurrentStep(5);
+    } catch (error: any) {
       console.error('Erreur lors du lancement de l\'analyse:', error);
-      alert('Erreur lors du lancement de l\'analyse. Veuillez réessayer.');
-      setCurrentStep(4);
+      alert(error.message || 'Erreur lors du lancement de l\'analyse. Veuillez réessayer.');
     }
   };
 
@@ -107,6 +107,8 @@ export const Analysis: React.FC = () => {
   const handleBack = () => {
     if (canGoBack) setCurrentStep((prev) => Math.max(1, prev - 1) as Step);
   };
+
+  // ── STEPPER ──────────────────────────────────────────────────────────────────
 
   const renderStepper = () => (
     <div className="mb-8">
@@ -143,14 +145,36 @@ export const Analysis: React.FC = () => {
     </div>
   );
 
+  // ── RENDU DES ÉTAPES ─────────────────────────────────────────────────────────
+
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 1:
-        return <FileUploadStep onFileValidated={handleFileValidated} onRequestAuth={onRequestAuth} />;
+        return (
+          <FileUploadStep
+            onFileValidated={handleFileValidated}
+            onRequestAuth={onRequestAuth}
+          />
+        );
+
       case 2:
-        return selectedFile ? <PreAnalysisStep file={selectedFile} onAnalysisComplete={handlePreAnalysisComplete} /> : null;
+        return selectedFile ? (
+          <PreAnalysisStep
+            file={selectedFile}
+            onAnalysisComplete={handlePreAnalysisComplete}
+          />
+        ) : null;
+
       case 3:
-        return preAnalysis ? <InsightSelectionStep columns={preAnalysis.columns} onInsightsSelected={handleInsightsSelected} /> : null;
+        return preAnalysis ? (
+          <InsightSelectionStep
+            columns={preAnalysis.columns}
+            suggestedInsights={preAnalysis.suggestedInsights}
+            aiSummary={preAnalysis.aiSummary}
+            onInsightsSelected={handleInsightsSelected}
+          />
+        ) : null;
+
       case 4:
         return selectedFile && fileValidation && preAnalysis ? (
           <ReviewStep
@@ -161,33 +185,54 @@ export const Analysis: React.FC = () => {
             onConfirm={handleConfirmAnalysis}
           />
         ) : null;
+
       case 5:
-        return (
-          <div className="text-center py-12">
-            <span className="loading loading-spinner loading-lg text-success"></span>
-            <p className="mt-4 text-base-content/70">Initialisation de l'analyse...</p>
-          </div>
-        );
-      case 6:
-        return analysisId ? <ProcessingStep analysisId={analysisId} /> : null;
+        return analysisId ? (
+          <ProcessingStep analysisId={analysisId} fileName={selectedFile?.name} />
+        ) : null;
+
       default:
         return null;
     }
   };
 
+  // ── RENDU PRINCIPAL ──────────────────────────────────────────────────────────
+
   return (
     <div className="min-h-screen bg-base-200 p-8">
       <div className="max-w-6xl mx-auto">
-        {currentStep < 6 && renderStepper()}
+        {currentStep < 5 && renderStepper()}
+
         <div className="card bg-base-100 shadow-sm border border-base-300">
           <div className="card-body p-8">
             {renderCurrentStep()}
           </div>
         </div>
-        {currentStep === 3 && selectedInsights.length > 0 && (
+
+        {/* Boutons de navigation — étape 3 uniquement */}
+        {currentStep === 3 && (
           <div className="flex justify-between mt-6">
-            {canGoBack && <button onClick={handleBack} className="btn btn-outline">Retour</button>}
-            <button onClick={handleNextToReview} className="btn btn-success ml-auto">Continuer</button>
+            {canGoBack && (
+              <button onClick={handleBack} className="btn btn-outline">
+                Retour
+              </button>
+            )}
+            <button
+              onClick={handleNextToReview}
+              className="btn btn-success ml-auto"
+              disabled={selectedInsights.length === 0}
+            >
+              Continuer ({selectedInsights.length} insight{selectedInsights.length > 1 ? 's' : ''})
+            </button>
+          </div>
+        )}
+
+        {/* Bouton retour — étapes 2 et 4 */}
+        {(currentStep === 2 || currentStep === 4) && canGoBack && (
+          <div className="flex mt-6">
+            <button onClick={handleBack} className="btn btn-outline">
+              Retour
+            </button>
           </div>
         )}
       </div>

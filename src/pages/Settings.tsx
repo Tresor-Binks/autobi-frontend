@@ -111,12 +111,8 @@ export const Settings: React.FC = () => {
             <div className="space-y-3 text-sm">
               <p className="text-base-content/70">
                 Les fichiers Excel sont supprimés après analyse. Seules les données
-                utiles et les résultats sont conservés temporairement.
+                utiles et les résultats sont conservés.
               </p>
-
-              <button className="btn btn-outline btn-sm">
-                Vider les données locales
-              </button>
             </div>
           </div>
         </div>

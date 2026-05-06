@@ -1,5 +1,8 @@
 /**
- * ÉTAPES 3 & 4 : PROPOSITION ET SÉLECTION D'INSIGHTS
+ * ÉTAPE 3 : SÉLECTION D'INSIGHTS
+ *
+ * Les insights sont déjà générés par GPT-4o-mini pendant l'upload (étape 2).
+ * Ils arrivent via la prop `suggestedInsights` — affichage immédiat, zéro polling.
  */
 
 import React, { useEffect, useState } from 'react';
@@ -10,11 +13,9 @@ import {
   AlertCircle,
   Plus,
   Check,
-  Loader,
   X,
   WifiOff,
-  Cpu,
-  Zap
+  Zap,
 } from 'lucide-react';
 import {
   analysisApi,
@@ -24,6 +25,8 @@ import {
 
 interface InsightSelectionStepProps {
   columns: Column[];
+  suggestedInsights: SuggestedInsight[];
+  aiSummary?: string;
   onInsightsSelected: (insights: SuggestedInsight[]) => void;
 }
 
@@ -42,39 +45,18 @@ const MAX_INSIGHTS = 6;
 
 export const InsightSelectionStep: React.FC<InsightSelectionStepProps> = ({
   columns,
-  onInsightsSelected
+  suggestedInsights,
+  aiSummary,
+  onInsightsSelected,
 }) => {
-  const [suggestedInsights, setSuggestedInsights] = useState<SuggestedInsight[]>([]);
   const [selectedInsights, setSelectedInsights] = useState<SuggestedInsight[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAIGenerated, setIsAIGenerated] = useState<boolean | null>(null);
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [customInsightText, setCustomInsightText] = useState('');
   const [validationResult, setValidationResult] = useState<CustomValidationResult>({ status: 'idle' });
 
   useEffect(() => {
-    loadSuggestions();
-  }, [columns]);
-
-  useEffect(() => {
     onInsightsSelected(selectedInsights);
   }, [selectedInsights]);
-
-  const loadSuggestions = async () => {
-    setIsLoading(true);
-    try {
-      const insights = await analysisApi.suggestInsights(columns);
-      setSuggestedInsights(insights);
-
-      // Source fiable : propriété exposée par le service après analyse du summary OpenAI
-      setIsAIGenerated(analysisApi.lastInsightsFromAI);
-    } catch (error) {
-      console.error('Erreur chargement suggestions:', error);
-      setIsAIGenerated(false);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const toggleInsight = (insight: SuggestedInsight) => {
     const isSelected = selectedInsights.some(i => i.id === insight.id);
@@ -116,7 +98,7 @@ export const InsightSelectionStep: React.FC<InsightSelectionStepProps> = ({
     } catch (error: any) {
       setValidationResult({
         status: 'error',
-        error: "Service d'analyse indisponible. Veuillez réessayer plus tard."
+        error: "Service d'analyse indisponible. Veuillez réessayer plus tard.",
       });
     }
   };
@@ -152,7 +134,7 @@ export const InsightSelectionStep: React.FC<InsightSelectionStepProps> = ({
       comparison: BarChart3,
       total: BarChart3,
       anomaly: AlertCircle,
-      distribution: BarChart3
+      distribution: BarChart3,
     };
     const Icon = icons[type] || BarChart3;
     return <Icon size={20} className="text-success" />;
@@ -162,21 +144,11 @@ export const InsightSelectionStep: React.FC<InsightSelectionStepProps> = ({
     const config = {
       high: { label: 'Facile', class: 'badge-success' },
       medium: { label: 'Moyen', class: 'badge-warning' },
-      low: { label: 'Difficile', class: 'badge-error' }
+      low: { label: 'Difficile', class: 'badge-error' },
     };
     const { label, class: badgeClass } = config[feasibility];
     return <span className={`badge badge-sm ${badgeClass}`}>{label}</span>;
   };
-
-  if (isLoading) {
-    return (
-      <div className="text-center py-12">
-        <Loader className="animate-spin mx-auto mb-4 text-success" size={48} />
-        <h3 className="text-lg font-semibold mb-2">Analyse de vos données en cours...</h3>
-        <p className="text-base-content/60">Génération d'insights pertinents basés sur votre fichier</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -200,6 +172,14 @@ export const InsightSelectionStep: React.FC<InsightSelectionStepProps> = ({
         </div>
       </div>
 
+      {/* Résumé IA */}
+      {aiSummary && (
+        <div className="alert bg-success/5 border border-success/20">
+          <Zap size={18} className="text-success flex-shrink-0" />
+          <p className="text-sm text-base-content/80">{aiSummary}</p>
+        </div>
+      )}
+
       {/* Alerte limite atteinte */}
       {selectedInsights.length >= MAX_INSIGHTS && (
         <div className="alert alert-warning">
@@ -210,74 +190,65 @@ export const InsightSelectionStep: React.FC<InsightSelectionStepProps> = ({
 
       {/* Insights suggérés */}
       <div>
-        {/* En-tête avec badge source subtil */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Sparkles className="text-success" size={24} />
             <h3 className="text-xl font-semibold">Suggestions</h3>
           </div>
 
-          {/* Badge discret IA / automatique */}
-          {isAIGenerated !== null && (
-            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-              isAIGenerated
-                ? 'bg-success/10 text-success border border-success/20'
-                : 'bg-base-200 text-base-content/50 border border-base-300'
-            }`}>
-              {isAIGenerated ? (
-                <>
-                  <Zap size={11} />
-                  Générés par l'IA
-                </>
-              ) : (
-                <>
-                  <Cpu size={11} />
-                  Générés automatiquement
-                </>
-              )}
-            </div>
-          )}
+          {/* Badge IA */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-success/10 text-success border border-success/20">
+            <Zap size={11} />
+            Générés par GPT-4o-mini
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {suggestedInsights.map((insight) => {
-            const isSelected = selectedInsights.some(i => i.id === insight.id);
-            return (
-              <div
-                key={insight.id}
-                onClick={() => toggleInsight(insight)}
-                className={`card cursor-pointer transition-all border-2 ${
-                  isSelected ? 'border-success bg-success/5' : 'border-base-300 hover:border-success/50'
-                }`}
-              >
-                <div className="card-body p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-start gap-3">
-                      {getInsightIcon(insight.type)}
-                      <div className="flex-1">
-                        <h4 className="font-semibold mb-1">{insight.title}</h4>
-                        <p className="text-sm text-base-content/70">{insight.description}</p>
+        {suggestedInsights.length === 0 ? (
+          <div className="alert alert-warning">
+            <AlertCircle size={18} />
+            <span>Aucun insight disponible. Vérifiez votre fichier ou réessayez.</span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {suggestedInsights.map((insight) => {
+              const isSelected = selectedInsights.some(i => i.id === insight.id);
+              return (
+                <div
+                  key={insight.id}
+                  onClick={() => toggleInsight(insight)}
+                  className={`card cursor-pointer transition-all border-2 ${
+                    isSelected ? 'border-success bg-success/5' : 'border-base-300 hover:border-success/50'
+                  }`}
+                >
+                  <div className="card-body p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-start gap-3">
+                        {getInsightIcon(insight.type)}
+                        <div className="flex-1">
+                          <h4 className="font-semibold mb-1">{insight.title}</h4>
+                          <p className="text-sm text-base-content/70">{insight.description}</p>
+                        </div>
                       </div>
+                      {isSelected && (
+                        <div className="bg-success text-success-content rounded-full p-1 flex-shrink-0">
+                          <Check size={16} />
+                        </div>
+                      )}
                     </div>
-                    {isSelected && (
-                      <div className="bg-success text-success-content rounded-full p-1 flex-shrink-0">
-                        <Check size={16} />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between mt-2">
-                    {getFeasibilityBadge(insight.feasibility)}
-                    {insight.requiredColumns.length > 0 && (
-                      <span className="text-xs text-base-content/40">
-                        {insight.requiredColumns.join(', ')}
-                      </span>
-                    )}
+                    <div className="flex items-center justify-between mt-2">
+                      {getFeasibilityBadge(insight.feasibility)}
+                      {insight.requiredColumns.length > 0 && (
+                        <span className="text-xs text-base-content/40">
+                          {insight.requiredColumns.join(', ')}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Ajouter un insight personnalisé */}
@@ -354,7 +325,7 @@ export const InsightSelectionStep: React.FC<InsightSelectionStepProps> = ({
                 </div>
               )}
 
-              {/* Erreur service — style neutre, message générique */}
+              {/* Erreur service */}
               {validationResult.status === 'error' && (
                 <div className="alert bg-base-200 border border-base-300 text-base-content/70">
                   <WifiOff size={18} className="opacity-50" />

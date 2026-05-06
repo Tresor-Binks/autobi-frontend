@@ -28,9 +28,9 @@ export default function App() {
     return <AutoBILoader />;
   }
 
-  document.addEventListener('contextmenu', (e) => {
-    e.preventDefault();
-  }, false);
+  // document.addEventListener('contextmenu', (e) => {
+  //   e.preventDefault();
+  // }, false);
 
   // Afficher l'application principale
   return <RouterProvider router={router} />;

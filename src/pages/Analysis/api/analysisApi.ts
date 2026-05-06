@@ -1,6 +1,14 @@
 /**
  * ANALYSIS API SERVICE
  * Connecté au backend FastAPI Python.
+ *
+ * WORKFLOW :
+ * 1. validateFile  → POST /analysis/validate
+ * 2. preAnalyzeFile → POST /analysis/upload  ← appelle GPT-4o-mini côté backend,
+ *                     retourne metadata + suggested_insights (déjà prêts)
+ * 3. suggestInsights → lit this.cachedInsights (stockés par preAnalyzeFile), ZÉRO appel réseau
+ * 4. runAnalysis   → POST /analysis/{id}/confirm  (envoie les IDs sélectionnés)
+ * 5. getAnalysisProgress → GET /analysis/{id}  (poll jusqu'à COMPLETED)
  */
 
 // ============================================================================
@@ -31,6 +39,9 @@ export interface PreAnalysisResponse {
   warnings?: string[];
   dataset_id?: string;
   metadata?: any;
+  // Insights déjà générés par GPT-4o-mini — prêts pour l'étape 3
+  suggestedInsights: SuggestedInsight[];
+  aiSummary: string;
 }
 
 export interface SuggestedInsight {
@@ -135,48 +146,20 @@ function computeDataQuality(metadata: any): 'good' | 'fair' | 'poor' {
   return 'poor';
 }
 
-function convertAIInstructionsToInsights(aiInstructions: any): SuggestedInsight[] {
-  const insights: SuggestedInsight[] = [];
+/**
+ * Convertit les suggested_insights du backend (snake_case) vers le format frontend.
+ */
+function convertSuggestedInsights(rawInsights: any[]): SuggestedInsight[] {
+  if (!rawInsights || !Array.isArray(rawInsights)) return [];
 
-  const rawInsights = aiInstructions?.insights || [];
-  for (const insight of rawInsights) {
-    if (typeof insight === 'object' && insight.title) {
-      insights.push({
-        id: insight.id || `insight_${insights.length}`,
-        title: insight.title,
-        description: insight.description || '',
-        type: insight.type || 'comparison',
-        feasibility: insight.feasibility || 'medium',
-        requiredColumns: insight.required_columns || [],
-      });
-    } else if (typeof insight === 'string') {
-      insights.push({
-        id: `insight_${insights.length}`,
-        title: insight,
-        description: insight,
-        type: 'comparison',
-        feasibility: 'medium',
-        requiredColumns: [],
-      });
-    }
-  }
-
-  if (insights.length < 6) {
-    const charts = aiInstructions?.charts || [];
-    for (const chart of charts) {
-      if (insights.length >= 6) break;
-      insights.push({
-        id: chart.id || `chart_${insights.length}`,
-        title: chart.title || `Graphique ${chart.type}`,
-        description: chart.description || `${chart.y || ''} par ${chart.x || ''}`,
-        type: chart.type === 'line' ? 'trend' : 'comparison',
-        feasibility: 'high',
-        requiredColumns: [chart.x, chart.y].filter(Boolean),
-      });
-    }
-  }
-
-  return insights.slice(0, 6);
+  return rawInsights.slice(0, 6).map((insight, idx) => ({
+    id: insight.id || `insight_${idx + 1}`,
+    title: insight.title || `Insight ${idx + 1}`,
+    description: insight.description || '',
+    type: insight.type || 'comparison',
+    feasibility: insight.feasibility || 'medium',
+    requiredColumns: insight.required_columns || [],
+  }));
 }
 
 // ============================================================================
@@ -188,8 +171,9 @@ class AnalysisApiService {
   private currentMetadata: any = null;
   private currentAnalysisId: number | null = null;
 
-  // Indique si les derniers insights viennent vraiment d'OpenAI (pas du fallback)
-  public lastInsightsFromAI: boolean = false;
+  // Insights générés par GPT-4o-mini pendant l'upload — lus directement à l'étape 3
+  private cachedInsights: SuggestedInsight[] = [];
+  private cachedAiSummary: string = '';
 
   // -----------------------------------------------------------------------
   // ÉTAPE 1 : Validation du fichier — POST /analysis/validate
@@ -222,7 +206,15 @@ class AnalysisApiService {
   }
 
   // -----------------------------------------------------------------------
-  // ÉTAPE 2 : Upload + pré-analyse — POST /analysis/upload
+  // ÉTAPE 2 : Upload + GPT-4o-mini — POST /analysis/upload
+  //
+  // Le backend :
+  //   1. Lit le fichier Excel
+  //   2. Appelle GPT-4o-mini (max 3 min)
+  //   3. Retourne metadata + suggested_insights + ai_summary
+  //
+  // On stocke les insights dans this.cachedInsights.
+  // L'étape 3 les lit directement — ZÉRO polling.
   // -----------------------------------------------------------------------
   async preAnalyzeFile(file: File): Promise<PreAnalysisResponse> {
     const formData = new FormData();
@@ -246,7 +238,11 @@ class AnalysisApiService {
     this.currentMetadata = data.metadata;
     this.currentAnalysisId = data.analysis_id;
 
-    console.log(`✅ Upload OK — analysis_id: ${data.analysis_id}`);
+    // Stockage des insights générés par l'IA — disponibles immédiatement
+    this.cachedInsights = convertSuggestedInsights(data.suggested_insights || []);
+    this.cachedAiSummary = data.ai_summary || '';
+
+    console.log(`✅ Upload OK — analysis_id: ${data.analysis_id}, ${this.cachedInsights.length} insights GPT-4o-mini prêts`);
 
     const columns = convertMetadataToColumns(data.metadata);
     const dataQuality = computeDataQuality(data.metadata);
@@ -263,116 +259,31 @@ class AnalysisApiService {
       warnings,
       dataset_id: data.dataset_id,
       metadata: data.metadata,
+      suggestedInsights: this.cachedInsights,
+      aiSummary: this.cachedAiSummary,
     };
   }
 
   // -----------------------------------------------------------------------
-  // ÉTAPE 3 : Suggestions d'insights — poll GET /analysis/{id}
+  // ÉTAPE 3 : Insights — lecture directe du cache, ZÉRO appel réseau
+  //
+  // Les insights ont été générés pendant l'upload (étape 2).
+  // Cette fonction est synchrone en pratique — elle retourne le cache immédiatement.
   // -----------------------------------------------------------------------
-  async suggestInsights(columns: Column[]): Promise<SuggestedInsight[]> {
-    if (!this.currentAnalysisId) {
-      console.warn('⚠️ Pas d\'analysis_id — fallback immédiat');
-      this.lastInsightsFromAI = false;
-      return this.getFallbackInsights(columns);
+  async suggestInsights(_columns: Column[]): Promise<SuggestedInsight[]> {
+    if (this.cachedInsights.length > 0) {
+      console.log(`📋 ${this.cachedInsights.length} insights depuis le cache GPT-4o-mini`);
+      return this.cachedInsights;
     }
 
-    console.log(`🔄 Polling analyse #${this.currentAnalysisId}...`);
-
-    const maxAttempts = 120;
-    for (let i = 0; i < maxAttempts; i++) {
-      await new Promise((r) => setTimeout(r, 1000));
-
-      try {
-        const result = await apiFetch<any>(`/analysis/${this.currentAnalysisId}`);
-        const normalizedStatus = result.status?.toLowerCase();
-        console.log(`📊 Statut: ${result.status} (${i + 1}s)`);
-
-        if (normalizedStatus === 'completed') {
-          const aiInstructions = result.ai_instructions || {};
-          const summary: string = aiInstructions.summary || '';
-
-          // Détermine si les insights viennent vraiment d'OpenAI
-          // Le fallback inclut toujours "indisponible" ou "Analyse automatique" dans le summary
-          const isRealAI = summary.length > 0
-            && !summary.includes('indisponible')
-            && !summary.includes('Analyse automatique');
-
-          this.lastInsightsFromAI = isRealAI;
-
-          const insights = convertAIInstructionsToInsights(aiInstructions);
-
-          if (insights.length === 0) {
-            console.warn('⚠️ Aucun insight — fallback local');
-            this.lastInsightsFromAI = false;
-            return this.getFallbackInsights(columns);
-          }
-
-          console.log(`✅ ${insights.length} insights — IA: ${isRealAI}`);
-          return insights;
-        }
-
-        if (normalizedStatus === 'failed') {
-          console.error('❌ Analyse échouée');
-          break;
-        }
-
-      } catch (e) {
-        console.error('Erreur polling:', e);
-      }
-    }
-
-    this.lastInsightsFromAI = false;
-    return this.getFallbackInsights(columns);
+    // Ne devrait jamais arriver en temps normal (upload toujours avant)
+    console.warn('⚠️ Cache vide — suggestInsights appelé avant preAnalyzeFile ?');
+    return [];
   }
 
-  // -----------------------------------------------------------------------
-  // FALLBACK insights locaux
-  // -----------------------------------------------------------------------
-  private getFallbackInsights(columns: Column[]): SuggestedInsight[] {
-    this.lastInsightsFromAI = false;
-
-    const insights: SuggestedInsight[] = [];
-    const numericCols = columns.filter(c => c.type === 'number');
-    const dateCols = columns.filter(c => c.type === 'date');
-    const textCols = columns.filter(c => c.type === 'text');
-
-    if (dateCols.length > 0 && numericCols.length > 0) {
-      insights.push({
-        id: 'fallback_trend',
-        title: `Évolution de ${numericCols[0].name} dans le temps`,
-        description: `Tendance de ${numericCols[0].name} sur la période`,
-        type: 'trend', feasibility: 'high',
-        requiredColumns: [dateCols[0].name, numericCols[0].name],
-      });
-    }
-    if (numericCols.length >= 2) {
-      insights.push({
-        id: 'fallback_comparison',
-        title: `Comparaison ${numericCols[0].name} vs ${numericCols[1].name}`,
-        description: 'Comparaison entre les deux principales métriques',
-        type: 'comparison', feasibility: 'high',
-        requiredColumns: [numericCols[0].name, numericCols[1].name],
-      });
-    }
-    if (textCols.length > 0 && numericCols.length > 0) {
-      insights.push({
-        id: 'fallback_groupby',
-        title: `Total ${numericCols[0].name} par ${textCols[0].name}`,
-        description: 'Agrégation par catégorie',
-        type: 'total', feasibility: 'high',
-        requiredColumns: [textCols[0].name, numericCols[0].name],
-      });
-    }
-    if (numericCols.length > 0) {
-      insights.push({
-        id: 'fallback_distribution',
-        title: `Distribution de ${numericCols[0].name}`,
-        description: 'Répartition des valeurs',
-        type: 'distribution', feasibility: 'high',
-        requiredColumns: [numericCols[0].name],
-      });
-    }
-    return insights;
+  // Expose le résumé IA pour l'affichage
+  getAiSummary(): string {
+    return this.cachedAiSummary;
   }
 
   // -----------------------------------------------------------------------
@@ -392,34 +303,36 @@ class AnalysisApiService {
   }
 
   // -----------------------------------------------------------------------
-  // ÉTAPE 4 : Validation locale (fallback)
+  // ÉTAPE 4 : Validation locale simple (garde-fou UI)
   // -----------------------------------------------------------------------
-  async validateInsight(description: string, columns: Column[]): Promise<InsightValidationResponse> {
+  async validateInsight(description: string, _columns: Column[]): Promise<InsightValidationResponse> {
     if (description.trim().length < 10) {
       return { valid: false, reason: 'Description trop courte. Soyez plus précis.' };
-    }
-    const columnNames = columns.map(c => c.name.toLowerCase());
-    const mentionsColumn = columnNames.some(col => description.toLowerCase().includes(col));
-    if (!mentionsColumn && columns.length > 0) {
-      return {
-        valid: false,
-        reason: `Mentionnez au moins une colonne : ${columns.map(c => c.name).join(', ')}`,
-      };
     }
     return { valid: true };
   }
 
   // -----------------------------------------------------------------------
-  // ÉTAPE 5 : Lancement — retourne l'ID déjà connu
+  // ÉTAPE 5 : Confirmation — POST /analysis/{id}/confirm
+  //
+  // Envoie les IDs des insights sélectionnés par l'utilisateur.
+  // Le backend déduit les tokens et lance le pipeline graphiques.
   // -----------------------------------------------------------------------
-  async runAnalysis(file: File, selectedInsights: SuggestedInsight[]): Promise<AnalysisRunResponse> {
+  async runAnalysis(_file: File, selectedInsights: SuggestedInsight[]): Promise<AnalysisRunResponse> {
     if (!this.currentAnalysisId) {
       throw new Error('Aucune analyse en attente. Veuillez recommencer depuis le début.');
     }
-    // /confirm : vérifie le solde, déduit les tokens, lance l’analyse
+
+    const selectedIds = selectedInsights.map(i => i.id);
+
     const result = await apiFetch<any>(`/analysis/${this.currentAnalysisId}/confirm`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ selected_insights: selectedIds }),
     });
+
+    console.log(`🚀 Analyse #${result.analysis_id} lancée — ${result.selected_insights_count} insight(s)`);
+
     return {
       analysisId: String(result.analysis_id),
       status: 'processing',
@@ -428,6 +341,7 @@ class AnalysisApiService {
 
   // -----------------------------------------------------------------------
   // ÉTAPE 6 : Suivi de progression — GET /analysis/{id}
+  // Poll jusqu'à COMPLETED ou FAILED.
   // -----------------------------------------------------------------------
   async getAnalysisProgress(analysisId: string): Promise<AnalysisProgressResponse> {
     const data = await apiFetch<any>(`/analysis/${analysisId}`);
@@ -444,8 +358,8 @@ class AnalysisApiService {
     let progress = 20;
     let currentStep = steps[0];
 
-    if (normalizedStatus === 'processing' || normalizedStatus === 'pending') {
-      progress = 50; currentStep = steps[2];
+    if (normalizedStatus === 'processing') {
+      progress = 55; currentStep = steps[2];
     } else if (normalizedStatus === 'completed') {
       progress = 100; currentStep = steps[4];
     } else if (normalizedStatus === 'failed') {
@@ -459,6 +373,17 @@ class AnalysisApiService {
             : normalizedStatus === 'failed' ? 'failed'
             : 'processing',
     };
+  }
+
+  // -----------------------------------------------------------------------
+  // RESET — à appeler si on repart de zéro
+  // -----------------------------------------------------------------------
+  reset() {
+    this.currentDatasetId = null;
+    this.currentMetadata = null;
+    this.currentAnalysisId = null;
+    this.cachedInsights = [];
+    this.cachedAiSummary = '';
   }
 }
 
