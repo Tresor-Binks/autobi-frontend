@@ -27,7 +27,7 @@ body {
   display: none;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 500px) {
   #root {
     display: none;
   }

@@ -83,11 +83,18 @@ export const Analysis: React.FC = () => {
   const handleConfirmAnalysis = async () => {
     if (!selectedFile) return;
 
+    // Détection de l'état de l'abonnement mensuel
+    const planVal = user?.plan_type ? String(user.plan_type).toUpperCase() : '';
+    const isMonthly = planVal.includes('MONTHLY');
+    const isPlanActive = !user?.plan_expires_at || new Date(user.plan_expires_at) > new Date();
+    const hasUnlimitedAccess = isMonthly && isPlanActive;
+
     const tokenCost = calculateTokenCost(selectedFile.size);
     const userBalance = user?.token_balance ?? 0;
 
-    if (userBalance < tokenCost) {
-      window.open('https://test.autoi.com', '_blank');
+    // Si pas d'accès mensuel illimité ET pas assez de jetons
+    if (!hasUnlimitedAccess && (!isMonthly && userBalance < tokenCost)) {
+      window.location.href = 'https://autobi-app/credits';
       return;
     }
 

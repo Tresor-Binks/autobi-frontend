@@ -22,7 +22,7 @@ interface AuthContextType {
   register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
-  refreshUser: () => Promise<void>; // ← NOUVEAU
+  refreshUser: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -136,6 +136,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         token_balance: data.token_balance,
         created_at: data.created_at,
         last_login: data.last_login,
+        plan_expires_at: data.plan_expires_at || null, // ➔ Inclusion du champ
       };
 
       setUser(updatedUser);

@@ -93,6 +93,7 @@ export interface AuthUser {
   token_balance: number;
   created_at: string;
   last_login?: string;
+  plan_expires_at?: string;  // 👈 CHAMP AJOUTÉ
 }
 
 export interface AuthResponse {

@@ -13,6 +13,17 @@ interface AuthModalProps {
   defaultTab?: 'login' | 'register';
 }
 
+// Validation Regex de l'adresse email
+const validateEmail = (email: string): boolean => {
+  const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return re.test(email);
+};
+
+// Validation du mot de passe (au moins 6 caractères)
+const validatePassword = (password: string): boolean => {
+  return password.length >= 6;
+};
+
 export const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
   onClose,
@@ -25,6 +36,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isNewUser, setIsNewUser] = useState(false);
+
+  // Erreurs de validation
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const [loginForm, setLoginForm] = useState<LoginCredentials>({
     email: '',
@@ -43,6 +58,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setRegisterForm({ firstName: '', lastName: '', email: '', password: '' });
     setError(null);
     setSuccess(null);
+    setEmailError(null);
+    setPasswordError(null);
     setIsNewUser(false);
   };
 
@@ -51,10 +68,53 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     onClose();
   };
 
+  // Gestion de l'email
+  const handleEmailChange = (val: string, formType: 'login' | 'register') => {
+    const formattedEmail = val.trim().toLowerCase();
+    
+    if (formType === 'login') {
+      setLoginForm(prev => ({ ...prev, email: formattedEmail }));
+    } else {
+      setRegisterForm(prev => ({ ...prev, email: formattedEmail }));
+    }
+
+    if (formattedEmail && !validateEmail(formattedEmail)) {
+      setEmailError('Veuillez entrer une adresse email valide');
+    } else {
+      setEmailError(null);
+    }
+  };
+
+  // Gestion du mot de passe
+  const handlePasswordChange = (val: string, formType: 'login' | 'register') => {
+    if (formType === 'login') {
+      setLoginForm(prev => ({ ...prev, password: val }));
+    } else {
+      setRegisterForm(prev => ({ ...prev, password: val }));
+    }
+
+    if (val && !validatePassword(val)) {
+      setPasswordError('Le mot de passe doit contenir au moins 6 caractères');
+    } else {
+      setPasswordError(null);
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
+
+    if (!validateEmail(loginForm.email)) {
+      setEmailError('Adresse email invalide');
+      return;
+    }
+
+    if (!validatePassword(loginForm.password)) {
+      setPasswordError('Le mot de passe doit contenir au moins 6 caractères');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -73,6 +133,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     e.preventDefault();
     setError(null);
     setSuccess(null);
+
+    if (!validateEmail(registerForm.email)) {
+      setEmailError('Adresse email invalide');
+      return;
+    }
+
+    if (!validatePassword(registerForm.password)) {
+      setPasswordError('Le mot de passe doit contenir au moins 6 caractères');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -122,7 +193,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
             </div>
 
-            {/* Erreur */}
+            {/* Erreur globale */}
             {error && (
               <div className="alert alert-error mb-4">
                 <AlertCircle size={20} />
@@ -138,17 +209,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </div>
             )}
 
-            {/* Succès inscription — message spécial avec jetons */}
+            {/* Succès inscription */}
             {success && isNewUser && (
-              <div className="alert alert-success mb-4 flex-col items-start gap-2">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 size={20} />
-                  <span className="font-semibold">{success}</span>
+              <div className="alert alert-success mb-4 flex flex-col items-start gap-3 p-4">
+                <div className="flex items-center gap-2 text-success-content font-bold text-base">
+                  <CheckCircle2 size={20} className="flex-shrink-0" />
+                  <span>{success}</span>
                 </div>
-                <div className="flex items-center gap-2 bg-success/20 rounded-lg px-3 py-2 w-full">
-                  <Coins size={18} className="text-success flex-shrink-0" />
-                  <p className="text-sm">
-                    🎉 Bienvenue ! Vous avez reçu <strong>5 jetons gratuits</strong> pour commencer vos premières analyses sans attendre.
+                <div className="flex items-start gap-3 bg-base-100/20 text-success-content rounded-lg p-3 w-full border border-base-100/20">
+                  <Coins size={20} className="flex-shrink-0 mt-0.5" />
+                  <p className="text-sm leading-relaxed">
+                    🎉 <strong>Bienvenue !</strong> Vous avez reçu <strong>5 jetons gratuits</strong> pour commencer vos premières analyses sans attendre.
                   </p>
                 </div>
               </div>
@@ -159,41 +230,55 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text">Email</span>
+                    <span className="label-text font-medium">Email</span>
                   </label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" size={20} />
                     <input
                       type="email"
                       value={loginForm.email}
-                      onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+                      onChange={(e) => handleEmailChange(e.target.value, 'login')}
                       placeholder="votre.email@example.com"
-                      className="input input-bordered w-full pl-10"
+                      className={`input input-bordered w-full pl-10 ${emailError ? 'input-error' : ''}`}
                       required
                       disabled={isLoading}
                     />
                   </div>
+                  {emailError && (
+                    <label className="label">
+                      <span className="label-text-alt text-error font-medium">{emailError}</span>
+                    </label>
+                  )}
                 </div>
 
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text">Mot de passe</span>
+                    <span className="label-text font-medium">Mot de passe</span>
                   </label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" size={20} />
                     <input
                       type="password"
                       value={loginForm.password}
-                      onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                      onChange={(e) => handlePasswordChange(e.target.value, 'login')}
                       placeholder="••••••••"
-                      className="input input-bordered w-full pl-10"
+                      className={`input input-bordered w-full pl-10 ${passwordError ? 'input-error' : ''}`}
                       required
                       disabled={isLoading}
                     />
                   </div>
+                  {passwordError && (
+                    <label className="label">
+                      <span className="label-text-alt text-error font-medium">{passwordError}</span>
+                    </label>
+                  )}
                 </div>
 
-                <button type="submit" disabled={isLoading} className="btn btn-success w-full">
+                <button 
+                  type="submit" 
+                  disabled={isLoading || !!emailError || !!passwordError} 
+                  className="btn btn-success w-full"
+                >
                   {isLoading ? (
                     <><span className="loading loading-spinner loading-sm"></span>Connexion...</>
                   ) : 'Se connecter'}
@@ -218,7 +303,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <div className="grid grid-cols-2 gap-4">
                   <div className="form-control">
                     <label className="label">
-                      <span className="label-text">Prénom</span>
+                      <span className="label-text font-medium">Prénom</span>
                     </label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" size={20} />
@@ -236,7 +321,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
                   <div className="form-control">
                     <label className="label">
-                      <span className="label-text">Nom</span>
+                      <span className="label-text font-medium">Nom</span>
                     </label>
                     <input
                       type="text"
@@ -252,45 +337,60 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text">Email</span>
+                    <span className="label-text font-medium">Email</span>
                   </label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" size={20} />
                     <input
                       type="email"
                       value={registerForm.email}
-                      onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
+                      onChange={(e) => handleEmailChange(e.target.value, 'register')}
                       placeholder="votre.email@example.com"
-                      className="input input-bordered w-full pl-10"
+                      className={`input input-bordered w-full pl-10 ${emailError ? 'input-error' : ''}`}
                       required
                       disabled={isLoading}
                     />
                   </div>
+                  {emailError && (
+                    <label className="label">
+                      <span className="label-text-alt text-error font-medium">{emailError}</span>
+                    </label>
+                  )}
                 </div>
 
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text">Mot de passe</span>
+                    <span className="label-text font-medium">Mot de passe</span>
                   </label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" size={20} />
                     <input
                       type="password"
                       value={registerForm.password}
-                      onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
+                      onChange={(e) => handlePasswordChange(e.target.value, 'register')}
                       placeholder="••••••••"
-                      className="input input-bordered w-full pl-10"
+                      className={`input input-bordered w-full pl-10 ${passwordError ? 'input-error' : ''}`}
                       required
                       minLength={6}
                       disabled={isLoading}
                     />
                   </div>
-                  <label className="label">
-                    <span className="label-text-alt">Minimum 6 caractères</span>
-                  </label>
+                  {passwordError ? (
+                    <label className="label">
+                      <span className="label-text-alt text-error font-medium">{passwordError}</span>
+                    </label>
+                  ) : (
+                    <label className="label">
+                      <span className="label-text-alt text-base-content/50">Minimum 6 caractères (lettres ou chiffres)</span>
+                    </label>
+                  )}
                 </div>
 
-                <button type="submit" disabled={isLoading} className="btn btn-success w-full">
+                <button 
+                  type="submit" 
+                  disabled={isLoading || !!emailError || !!passwordError} 
+                  className="btn btn-success w-full"
+                >
                   {isLoading ? (
                     <><span className="loading loading-spinner loading-sm"></span>Création...</>
                   ) : 'Créer un compte'}

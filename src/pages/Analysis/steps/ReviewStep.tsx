@@ -1,11 +1,5 @@
 /**
  * ÉTAPE 4 : CONFIRMATION & RÉVISION
- *
- * Récapitulatif complet avant le lancement de l'analyse :
- * - Fichier sélectionné
- * - Colonnes détectées
- * - Insights choisis
- * - Coût en jetons + vérification du solde
  */
 
 import React, { useMemo } from 'react';
@@ -17,7 +11,8 @@ import {
   Play,
   Coins,
   AlertTriangle,
-  ExternalLink
+  ExternalLink,
+  Crown
 } from 'lucide-react';
 import { SuggestedInsight, Column, FileValidationResponse } from '../api/analysisApi';
 import { useAuth } from '../../../hooks/useAuth';
@@ -30,16 +25,9 @@ interface ReviewStepProps {
   onConfirm: () => void;
 }
 
-/**
- * Calcule le coût en jetons selon la taille du fichier.
- * - Arrondi à la dizaine supérieure (ex: 23Ko → 30Ko)
- * - 10Ko = 1 jeton (minimum 1)
- * - Ex: 5Ko → 1 jeton | 20Ko → 2 jetons | 23Ko → 3 jetons | 25Ko → 3 jetons
- */
 function calculateTokenCost(fileSizeBytes: number): number {
   const sizeKo = fileSizeBytes / 1024;
   if (sizeKo <= 10) return 1;
-  // Arrondi à la dizaine supérieure
   const roundedKo = Math.ceil(sizeKo / 10) * 10;
   return roundedKo / 10;
 }
@@ -53,9 +41,26 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
 }) => {
   const { user } = useAuth();
 
-  const tokenCost = useMemo(() => calculateTokenCost(file.size), [file.size]);
+  // 1. Détection du type de plan et de la validité
+  const planVal = user?.plan_type ? String(user.plan_type).toUpperCase() : '';
+  const isMonthly = planVal.includes('MONTHLY');
+  const isPlanActive = !user?.plan_expires_at || new Date(user.plan_expires_at) > new Date();
+  
+  // Cas A : Mensuel valide -> Accès illimité
+  const hasUnlimitedAccess = isMonthly && isPlanActive;
+  // Cas B : Mensuel expiré
+  const isMonthlyExpired = isMonthly && !isPlanActive;
+
+  // 2. Calcul des jetons
+  const rawTokenCost = useMemo(() => calculateTokenCost(file.size), [file.size]);
+  const tokenCost = hasUnlimitedAccess ? 0 : rawTokenCost;
   const userBalance = user?.token_balance ?? 0;
+  
+  // 3. Condition d'autorisation de lancement :
+  // - Si Mensuel : doit être actif (non expiré)
+  // - Si Pay-As-You-Go (crédits) : le solde doit être >= au coût en jetons
   const hasEnoughTokens = userBalance >= tokenCost;
+  const canProceed = hasUnlimitedAccess || (!isMonthly && hasEnoughTokens);
 
   return (
     <div className="space-y-6">
@@ -141,63 +146,112 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
         </div>
       </div>
 
-      {/* Coût en jetons */}
+      {/* Facturation / Statut */}
       <div className={`card border shadow-sm ${
-        hasEnoughTokens
+        canProceed
           ? 'bg-base-100 border-base-300'
           : 'bg-error/5 border-error/30'
       }`}>
         <div className="card-body">
           <div className="flex items-center gap-3 mb-4">
-            <Coins className={hasEnoughTokens ? 'text-success' : 'text-error'} size={28} />
-            <h3 className="text-xl font-semibold">Coût de l'analyse</h3>
+            {hasUnlimitedAccess ? (
+              <Crown className="text-warning" size={28} />
+            ) : isMonthlyExpired ? (
+              <Crown className="text-error" size={28} />
+            ) : (
+              <Coins className={canProceed ? 'text-success' : 'text-error'} size={28} />
+            )}
+            <h3 className="text-xl font-semibold">Facturation de l'analyse</h3>
           </div>
 
           <div className="flex items-center justify-between">
-            {/* Coût */}
             <div className="flex items-center gap-6">
+              {/* Statut Forfait ou Coût jetons */}
               <div>
-                <p className="text-sm text-base-content/60 mb-1">Coût de cette analyse</p>
-                <p className="text-2xl font-bold text-success">
-                  {tokenCost} jeton{tokenCost > 1 ? 's' : ''}
-                </p>
-                <p className="text-xs text-base-content/50 mt-0.5">
-                  Basé sur {(file.size / 1024).toFixed(1)} Ko
-                </p>
-              </div>
-
-              {/* Séparateur */}
-              <div className="divider divider-horizontal"></div>
-
-              {/* Solde */}
-              <div>
-                <p className="text-sm text-base-content/60 mb-1">Votre solde</p>
-                <p className={`text-2xl font-bold ${hasEnoughTokens ? 'text-base-content' : 'text-error'}`}>
-                  {userBalance} jeton{userBalance > 1 ? 's' : ''}
-                </p>
-                {hasEnoughTokens && (
-                  <p className="text-xs text-base-content/50 mt-0.5">
-                    Après analyse : {userBalance - tokenCost} jeton{(userBalance - tokenCost) > 1 ? 's' : ''}
-                  </p>
+                <p className="text-sm text-base-content/60 mb-1">Mode de facturation</p>
+                {hasUnlimitedAccess ? (
+                  <div>
+                    <span className="badge badge-warning gap-1 text-sm font-semibold p-2">
+                      <Crown size={14} /> Abonnement Mensuel Actif
+                    </span>
+                    <p className="text-xs text-base-content/50 mt-1">
+                      Analyses illimitées incluses
+                    </p>
+                  </div>
+                ) : isMonthlyExpired ? (
+                  <div>
+                    <span className="badge badge-error gap-1 text-sm font-semibold p-2">
+                      <Crown size={14} /> Abonnement Expiré
+                    </span>
+                    <p className="text-xs text-error mt-1 font-medium">
+                      Renouvellement requis
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-2xl font-bold text-success">
+                      {tokenCost} jeton{tokenCost > 1 ? 's' : ''}
+                    </p>
+                    <p className="text-xs text-base-content/50 mt-0.5">
+                      Basé sur {(file.size / 1024).toFixed(1)} Ko
+                    </p>
+                  </>
                 )}
               </div>
+
+              {/* Solde des jetons pour les comptes Pay-As-You-Go */}
+              {!isMonthly && (
+                <>
+                  <div className="divider divider-horizontal"></div>
+
+                  <div>
+                    <p className="text-sm text-base-content/60 mb-1">Votre solde de jetons</p>
+                    <p className={`text-2xl font-bold ${canProceed ? 'text-base-content' : 'text-error'}`}>
+                      {userBalance} jeton{userBalance > 1 ? 's' : ''}
+                    </p>
+                    {canProceed && (
+                      <p className="text-xs text-base-content/50 mt-0.5">
+                        Après analyse : {userBalance - tokenCost} jeton{(userBalance - tokenCost) > 1 ? 's' : ''}
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
-          {/* Alerte solde insuffisant */}
-          {!hasEnoughTokens && (
+          {/* Alerte A : Abonnement Mensuel Expiré */}
+          {isMonthlyExpired && (
             <div className="mt-4 alert alert-error">
               <AlertTriangle size={18} />
               <div className="flex-1">
-                <p className="font-semibold">Solde insuffisant</p>
+                <p className="font-semibold">Abonnement expiré</p>
+                <p className="text-sm mt-1">
+                  Votre abonnement mensuel est arrivé à échéance. Veuillez le renouveler pour continuer vos analyses.
+                </p>
+              </div>
+              <a
+                href="https://autobi-app/credits"
+                className="btn btn-error btn-sm gap-2"
+              >
+                <ExternalLink size={14} />
+                Renouveler l'abonnement
+              </a>
+            </div>
+          )}
+
+          {/* Alerte B : Jetons Insuffisants (Pay-As-You-Go) */}
+          {!canProceed && !isMonthly && (
+            <div className="mt-4 alert alert-error">
+              <AlertTriangle size={18} />
+              <div className="flex-1">
+                <p className="font-semibold">Solde de jetons insuffisant</p>
                 <p className="text-sm mt-1">
                   Il vous manque {tokenCost - userBalance} jeton{(tokenCost - userBalance) > 1 ? 's' : ''} pour lancer cette analyse.
                 </p>
               </div>
               <a
-                href="https://test.autoi.com"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="https://autobi-app/credits"
                 className="btn btn-error btn-sm gap-2"
               >
                 <ExternalLink size={14} />
@@ -208,32 +262,40 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
         </div>
       </div>
 
-      {/* Résumé prêt */}
-      {hasEnoughTokens && (
+      {/* Message de confirmation si tout est OK */}
+      {canProceed && (
         <div className="alert border border-info/30 bg-info/5">
           <CheckCircle2 className="text-info" />
           <div>
             <h4 className="font-semibold">Prêt pour l'analyse</h4>
             <p className="text-sm">
               L'analyse générera un dashboard interactif avec les {selectedInsights.length} insights sélectionnés.
-              Cette opération prendra environ 30 secondes.
             </p>
           </div>
         </div>
       )}
 
-      {/* Bouton de confirmation */}
+      {/* Bouton d'action principal */}
       <div className="flex justify-center pt-4">
-        {hasEnoughTokens ? (
-          <button onClick={onConfirm} className="btn btn-success btn-lg">
+        {canProceed ? (
+          <button onClick={onConfirm} className="btn btn-success btn-lg gap-2">
             <Play size={20} />
-            Lancer l'analyse ({tokenCost} jeton{tokenCost > 1 ? 's' : ''})
+            {hasUnlimitedAccess
+              ? "Lancer l'analyse"
+              : `Lancer l'analyse (${tokenCost} jeton${tokenCost > 1 ? 's' : ''})`
+            }
           </button>
+        ) : isMonthlyExpired ? (
+          <a
+            href="https://autobi-app/credits"
+            className="btn btn-error btn-lg gap-2"
+          >
+            <ExternalLink size={20} />
+            Renouveler votre abonnement
+          </a>
         ) : (
           <a
-            href="https://test.autoi.com"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="https://autobi-app/credits"
             className="btn btn-error btn-lg gap-2"
           >
             <ExternalLink size={20} />

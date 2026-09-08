@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Moon, Sun, Bell, User, LogOut, X, CheckCheck,
   BarChart3, Coins, Zap, AlertTriangle, Sparkles,
-  ExternalLink, Trash2, Plus
+  ExternalLink, Trash2, Plus, Crown, Calendar
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { AuthModal } from '../components/auth/AuthModal';
@@ -249,11 +249,26 @@ export const TopBar: React.FC<{ theme: string; onThemeToggle: () => void }> = ({
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
 
   const handleLogout = async () => {
     await logout();
-    
   };
+
+  // ── CALCUL DU STATUT DU PLAN ─────────────────────────────────────────────
+  const planVal = user?.plan_type ? String(user.plan_type).toUpperCase() : '';
+  const isMonthly = planVal.includes('MONTHLY');
+  
+  let daysRemaining = 0;
+  let isExpired = false;
+
+  if (isMonthly && user?.plan_expires_at) {
+    const expiresAt = new Date(user.plan_expires_at).getTime();
+    const now = new Date().getTime();
+    const diffTime = expiresAt - now;
+    daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+    isExpired = diffTime <= 0;
+  }
 
   return (
     <>
@@ -283,8 +298,11 @@ export const TopBar: React.FC<{ theme: string; onThemeToggle: () => void }> = ({
 
         {/* Menu utilisateur ou bouton connexion */}
         {isAuthenticated && user ? (
-          <div className="dropdown dropdown-end">
-            <button className="btn btn-ghost btn-sm gap-2 px-3">
+          <div className={`dropdown dropdown-end ${showUserDropdown ? 'dropdown-open' : ''}`}>
+            <button
+              onClick={() => setShowUserDropdown(prev => !prev)}
+              className="btn btn-ghost btn-sm gap-2 px-3"
+            >
               <div className="w-6 h-6 rounded-full bg-success/15 flex items-center justify-center">
                 <User size={13} className="text-success" />
               </div>
@@ -292,29 +310,69 @@ export const TopBar: React.FC<{ theme: string; onThemeToggle: () => void }> = ({
                 {user.firstName}
               </span>
             </button>
-            <ul className="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-xl w-52 mt-2 border border-base-300">
-              {/* Info utilisateur */}
-              <li className="px-3 py-2 mb-1">
-                <div className="flex flex-col gap-0 cursor-default hover:bg-transparent focus:bg-transparent active:bg-transparent">
-                  <span className="font-semibold text-sm">{user.firstName} {user.lastName}</span>
-                  <span className="text-xs text-base-content/50 truncate">{user.email}</span>
-                  <span className="text-xs text-success mt-1 font-medium">
-                    {user.token_balance} jeton{user.token_balance > 1 ? 's' : ''}
-                  </span>
-                </div>
-              </li>
-              <div className="divider my-0.5" />
-              <li>
-                <button onClick={() => navigate('/profile')} className="flex items-center gap-2 text-sm">
-                  <User size={14} />Mon profil
-                </button>
-              </li>
-              <li>
-                <button onClick={handleLogout} className="flex items-center gap-2 text-sm text-error">
-                  <LogOut size={14} />Déconnexion
-                </button>
-              </li>
-            </ul>
+
+            {showUserDropdown && (
+              <ul className="dropdown-content z-[100] menu p-2 shadow-lg bg-base-100 rounded-xl w-60 mt-2 border border-base-300">
+                {/* Info utilisateur */}
+                <li className="px-3 py-2 mb-1">
+                  <div className="flex flex-col gap-1 cursor-default hover:bg-transparent focus:bg-transparent active:bg-transparent">
+                    <span className="font-semibold text-sm">{user.firstName} {user.lastName}</span>
+                    <span className="text-xs text-base-content/50 truncate">{user.email}</span>
+                    
+                    {/* Affichage adaptatif : Mensuel (jours restants) vs Jetons */}
+                    <div className="mt-2 pt-2 border-t border-base-200">
+                      {isMonthly ? (
+                        isExpired ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="badge badge-error gap-1 text-[11px] font-semibold w-full py-2">
+                              <AlertTriangle size={12} /> Abonnement expiré
+                            </span>
+                            <a
+                              href="https://autobi-app/credits"
+                              className="text-xs text-error hover:underline flex items-center gap-1 font-medium mt-1"
+                            >
+                              <ExternalLink size={11} /> Se réabonner
+                            </a>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between bg-warning/10 text-warning-content p-2 rounded-lg border border-warning/20">
+                            <div className="flex items-center gap-1.5 text-xs font-semibold text-warning">
+                              <Crown size={14} /> Plan Mensuel
+                            </div>
+                            <span className="text-xs font-bold text-base-content">
+                              {daysRemaining} jour{daysRemaining > 1 ? 's' : ''} restant{daysRemaining > 1 ? 's' : ''}
+                            </span>
+                          </div>
+                        )
+                      ) : (
+                        <div className="flex items-center justify-between bg-success/10 p-2 rounded-lg border border-success/20">
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-success">
+                            <Coins size={14} /> Crédits
+                          </div>
+                          <span className="text-xs font-bold text-base-content">
+                            {user.token_balance} jeton{user.token_balance > 1 ? 's' : ''}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </li>
+
+                <div className="divider my-0.5" />
+
+                <li>
+                  <button onClick={() => navigate('/profile')} className="flex items-center gap-2 text-sm">
+                    <User size={14} />Mon profil
+                  </button>
+                </li>
+
+                <li>
+                  <button onClick={handleLogout} className="flex items-center gap-2 text-sm text-error">
+                    <LogOut size={14} />Déconnexion
+                  </button>
+                </li>
+              </ul>
+            )}
           </div>
         ) : (
           <button onClick={() => setShowAuthModal(true)} className="btn btn-success btn-sm">

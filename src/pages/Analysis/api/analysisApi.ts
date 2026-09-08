@@ -242,7 +242,7 @@ class AnalysisApiService {
     this.cachedInsights = convertSuggestedInsights(data.suggested_insights || []);
     this.cachedAiSummary = data.ai_summary || '';
 
-    console.log(`✅ Upload OK — analysis_id: ${data.analysis_id}, ${this.cachedInsights.length} insights GPT-4o-mini prêts`);
+    console.log(`✅ Upload OK — analysis_id: ${data.analysis_id}, ${this.cachedInsights.length} insights prêts`);
 
     const columns = convertMetadataToColumns(data.metadata);
     const dataQuality = computeDataQuality(data.metadata);

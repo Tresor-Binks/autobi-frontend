@@ -3,7 +3,7 @@
  * Paramètres de l'application (thème, préférences, IA, données)
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useTheme } from '../hooks/useTheme';
 
 // Définition locale du type
@@ -11,9 +11,27 @@ type Theme = 'light' | 'dark';
 
 export const Settings: React.FC = () => {
   const { theme, setTheme } = useTheme();
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const handleUnavailableClick = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    setToastMessage('Cette fonctionnalité sera disponible très bientôt !');
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3000);
+  };
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
+    <div className="p-8 max-w-4xl mx-auto relative">
+
+      {/* Toast d'avertissement */}
+      {toastMessage && (
+        <div className="toast toast-top toast-center z-50">
+          <div className="alert alert-success text-white text-sm shadow-lg">
+            <span>{toastMessage}</span>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-6">
 
@@ -45,25 +63,41 @@ export const Settings: React.FC = () => {
           <div className="card-body">
             <h2 className="text-xl font-semibold mb-4">Préférences utilisateur</h2>
             <div className="space-y-4">
-              <label className="label cursor-pointer justify-start gap-4">
-                <input type="checkbox" className="checkbox checkbox-success" defaultChecked />
+              <div 
+                className="label cursor-not-allowed justify-start gap-4 opacity-60"
+                onClick={handleUnavailableClick}
+              >
+                <input 
+                  type="checkbox" 
+                  className="checkbox checkbox-success cursor-not-allowed" 
+                  checked={false} 
+                  readOnly 
+                />
                 <div>
                   <span className="label-text font-medium">Notifications</span>
                   <p className="text-sm text-base-content/60">
-                    Être averti à la fin d’une analyse
+                    Être averti à la fin d’une analyse par mail
                   </p>
                 </div>
-              </label>
+              </div>
 
-              <label className="label cursor-pointer justify-start gap-4">
-                <input type="checkbox" className="checkbox checkbox-success" defaultChecked />
+              <div 
+                className="label cursor-not-allowed justify-start gap-4 opacity-60"
+                onClick={handleUnavailableClick}
+              >
+                <input 
+                  type="checkbox" 
+                  className="checkbox checkbox-success cursor-not-allowed" 
+                  checked={false} 
+                  readOnly 
+                />
                 <div>
                   <span className="label-text font-medium">Sauvegarde locale</span>
                   <p className="text-sm text-base-content/60">
                     Conserver les résultats d’analyse localement
                   </p>
                 </div>
-              </label>
+              </div>
             </div>
           </div>
         </div>
@@ -74,30 +108,39 @@ export const Settings: React.FC = () => {
             <h2 className="text-xl font-semibold mb-4">Assistant IA</h2>
 
             <div className="space-y-4">
-              <div>
-                <label className="label font-medium">Complexité des réponses</label>
+              <div className="cursor-not-allowed opacity-60" onClick={handleUnavailableClick}>
+                <label className="label font-medium cursor-not-allowed">Complexité des réponses</label>
                 <input
                   type="range"
                   min={1}
                   max={3}
-                  defaultValue={2}
-                  className="range range-success xs"
+                  value={2}
+                  readOnly
+                  className="range range-success xs pointer-events-none"
                 />
                 <div className="flex justify-between text-xs text-base-content/60 mt-1">
                   <span>Simple</span>
-                  <span>Équilibré</span>
+                  <span className="font-bold text-success">Équilibré</span>
                   <span>Avancé</span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
+              <div 
+                className="flex items-center justify-between cursor-not-allowed opacity-60 pt-2"
+                onClick={handleUnavailableClick}
+              >
                 <div>
                   <h3 className="font-medium">Analyse approfondie</h3>
                   <p className="text-sm text-base-content/60">
                     Générer plus d’insights et de détails
                   </p>
                 </div>
-                <input type="checkbox" className="toggle toggle-success" defaultChecked />
+                <input 
+                  type="checkbox" 
+                  className="toggle toggle-success cursor-not-allowed" 
+                  checked={false} 
+                  readOnly 
+                />
               </div>
             </div>
           </div>

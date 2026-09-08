@@ -108,7 +108,7 @@ export const History: React.FC = () => {
                         <CheckCircle2 size={14} />Terminée
                       </div>
                       <div className="btn btn-sm btn-success gap-2 opacity-50">
-                        <BarChart3 size={14} />Voir le dashboard
+                        <BarChart3 size={14} />Voir le rapport
                       </div>
                     </div>
                   </div>
@@ -196,7 +196,7 @@ export const History: React.FC = () => {
                     {getStatusBadge(analysis.status)}
                     {analysis.status.toLowerCase() === 'completed' && (
                       <button onClick={() => navigate(`/dashboard/${analysis.id}`)} className="btn btn-sm btn-success gap-2">
-                        <BarChart3 size={14} />Voir le dashboard
+                        <BarChart3 size={14} />Voir le rapport
                       </button>
                     )}
                     {(analysis.status.toLowerCase() === 'processing' || analysis.status.toLowerCase() === 'pending') && (

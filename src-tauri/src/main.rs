@@ -1,3 +1,6 @@
+// Empêche l'ouverture de la console CMD sous Windows en mode release
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 use tauri::{Manager, LogicalSize}; 
 
 fn main() {

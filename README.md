@@ -362,4 +362,3 @@ Le hook `useAuth()` expose :
 - **Pas de rollback de jetons** : une analyse qui échoue ne rembourse pas les jetons
 - **Timeout IA** : si GPT-4o-mini ne répond pas en 3 minutes → HTTP 504 → message clair à l'utilisateur avec bouton "Réessayer"
 - **Doublon d'unité** : le Dashboard vérifie que `unit` n'est pas déjà présent dans `value` avant de l'afficher
-- **Devise** : FCFA par défaut si aucune devise n'est détectée dans les données du fichier uploadé
