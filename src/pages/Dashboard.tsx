@@ -374,17 +374,10 @@ function KpiIcon({ icon }: { icon?: string }) {
 }
 
 const KpiCard: React.FC<{ kpi: KPI }> = ({ kpi }) => {
-  const trendUp = kpi.trend === 'up'; const trendDown = kpi.trend === 'down';
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-3">
         <div className="p-2 bg-emerald-50 rounded-lg"><KpiIcon icon={kpi.icon} /></div>
-        {kpi.trend && kpi.trend !== 'stable' && (
-          <span className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${trendUp ? 'bg-emerald-50 text-emerald-600' : trendDown ? 'bg-red-50 text-red-500' : 'bg-gray-100 text-gray-500'}`}>
-            {trendUp ? <TrendingUp size={11} /> : trendDown ? <TrendingDown size={11} /> : <Minus size={11} />}
-            {kpi.trend_value || kpi.trend}
-          </span>
-        )}
       </div>
       <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">{kpi.label}</p>
       <p className="text-2xl font-bold text-gray-900 leading-none">
@@ -526,6 +519,7 @@ const ReportContent: React.FC<{ analysis: any }> = ({ analysis }) => {
       <div className="bg-white border border-gray-200 rounded-xl px-5 py-3 flex justify-between text-xs text-gray-300">
         <span>AutoBI · {analysis.file_name}</span>
         <span>Analyse #{analysis.analysis_id} · {analysis.tokens_consumed || 0} jeton(s)</span>
+        <span className="text-green-700">L'IA d'autoBI peut faire des erreurs, une vérification peut etre nécéssaire</span>
       </div>
     </div>
   );
@@ -573,14 +567,10 @@ export const Dashboard: React.FC = () => {
 
     const kpiCards = kpis.map((kpi:any, i:number) => {
       const vt = String(kpi.value||'') + (kpi.unit && !String(kpi.value).toLowerCase().includes(String(kpi.unit).toLowerCase()) ? ' '+kpi.unit : '');
-      const trendHtml = kpi.trend && kpi.trend !== 'stable'
-        ? `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;background:${kpi.trend==='up'?'#d1fae5':'#fee2e2'};color:${kpi.trend==='up'?'#065f46':'#991b1b'}">${kpi.trend==='up'?'↑':'↓'} ${(kpi.trend_value||'').slice(0,18)}</span>`
-        : '';
       return `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 14px;break-inside:avoid;position:relative;overflow:hidden">
         <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${CHART_COLORS[i%CHART_COLORS.length]};border-radius:12px 12px 0 0"></div>
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:8px">
           <p style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin:0 0 6px">${kpi.label||''}</p>
-          ${trendHtml}
         </div>
         <p style="font-size:22px;font-weight:800;color:#0f172a;margin:0 0 8px;line-height:1.1">${vt}</p>
         <p style="font-size:10px;color:#94a3b8;margin:0;line-height:1.4">${(kpi.description||'').slice(0,100)}</p>

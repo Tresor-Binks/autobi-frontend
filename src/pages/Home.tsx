@@ -75,7 +75,6 @@ export const Home: React.FC = () => {
    * Nouveautés récentes de l'application
    */
   const updates = [
-    'Support amélioré des fichiers Excel avec formules complexes',
     'Nouveaux types de graphiques : nuages de points et histogrammes',
     'Interface IA plus rapide avec réponses contextuelles',
     'Export des résultats d\'analyse en PDF'
