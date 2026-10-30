@@ -8,9 +8,9 @@ import {
   MessageSquare,
   Settings,
   User,
+  Plus,
   ChevronLeft,
   ChevronRight,
-  Database,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -35,7 +35,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'history', label: 'Historique', icon: History, path: '/history' },
     { id: 'ai', label: 'IA', icon: MessageSquare, path: '/ai' },
     { id: 'settings', label: 'Paramètres', icon: Settings, path: '/settings' },
-    { id: 'profile', label: 'Profil', icon: User, path: '/profile' },
+  ];
+
+  const profileItem: MenuItem = {
+    id: 'profile',
+    label: 'Profil',
+    icon: User,
+    path: '/profile',
+  };
+
+  const mobileMenuItems: MenuItem[] = [
+    { id: 'home', label: 'Accueil', icon: Home, path: '/' },
+    { id: 'history', label: 'Historique', icon: History, path: '/history' },
+    { id: 'analysis', label: 'Analyse', icon: Plus, path: '/analysis' },
+    { id: 'ai', label: 'IA', icon: MessageSquare, path: '/ai' },
+    { id: 'settings', label: 'Paramètres', icon: Settings, path: '/settings' },
   ];
 
   return (
@@ -118,15 +132,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
           ))}
         </nav>
 
-        {/* FOOTER */}
-        {!collapsed && (
-          <div className="p-4 border-t border-base-300">
-            <div className="flex items-center gap-2 text-xs text-base-content/40">
-              <Database size={14} />
-              <span>AUTO BI Workspace</span>
-            </div>
-          </div>
-        )}
+        {/* PROFIL EN BAS DE LA SIDEBAR */}
+        <div className="p-3 border-t border-base-300 flex-shrink-0">
+          <NavLink
+            to={profileItem.path}
+            title={collapsed ? profileItem.label : undefined}
+            className={({ isActive }) => `
+              relative flex items-center gap-3
+              px-3 py-3 rounded-xl
+              transition-all duration-200
+              ${
+                isActive
+                  ? 'bg-success/10 text-success font-semibold'
+                  : 'text-base-content/60 hover:bg-base-200 hover:text-base-content'
+              }
+              ${collapsed ? 'justify-center' : ''}
+            `}
+          >
+            <User size={20} strokeWidth={2} className="flex-shrink-0" />
+            {!collapsed && <span className="text-sm">Profil</span>}
+          </NavLink>
+        </div>
       </aside>
 
 
@@ -148,9 +174,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           paddingBottom: 'env(safe-area-inset-bottom)',
         }}
       >
-        <div className="grid grid-cols-6 items-center px-1 pt-2 pb-1">
+        <div className="grid grid-cols-5 items-end px-1 pt-2 pb-1">
 
-          {menuItems.map((item) => (
+          {mobileMenuItems.map((item) => (
             <NavLink
               key={item.id}
               to={item.path}
@@ -164,6 +190,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 py-1.5 px-0.5
                 rounded-xl
                 transition-all duration-200
+                ${item.id === 'analysis' ? '-translate-y-3' : ''}
                 ${
                   isActive
                     ? 'text-success'
@@ -182,18 +209,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <span
                     className={`
                       flex items-center justify-center
-                      w-9 h-7 rounded-xl
+                      ${item.id === 'analysis' ? 'w-12 h-12 rounded-full bg-success text-white shadow-lg' : 'w-9 h-7 rounded-xl'}
                       transition-all duration-200
                       ${
-                        isActive
+                        item.id !== 'analysis' && isActive
                           ? 'bg-success/10'
-                          : 'bg-transparent'
+                          : item.id !== 'analysis'
+                            ? 'bg-transparent'
+                            : ''
                       }
                     `}
                   >
                     <item.icon
-                      size={20}
-                      strokeWidth={isActive ? 2.4 : 1.8}
+                      size={item.id === 'analysis' ? 25 : 20}
+                      strokeWidth={item.id === 'analysis' ? 2.5 : isActive ? 2.4 : 1.8}
                     />
                   </span>
 
