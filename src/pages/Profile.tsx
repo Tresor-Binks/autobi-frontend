@@ -76,12 +76,12 @@ const InfoRow: React.FC<{
   label: string;
   value: string;
 }> = ({ icon, label, value }) => (
-  <div className="flex items-center justify-between py-4 border-b border-base-200 last:border-0">
-    <div className="flex items-center gap-3 text-base-content/60">
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4 py-4 border-b border-base-200 last:border-0 min-w-0">
+    <div className="flex items-center gap-3 text-base-content/60 min-w-0">
       {icon}
       <span className="font-medium">{label}</span>
     </div>
-    <span className="text-base font-medium text-base-content">{value}</span>
+    <span className="text-sm sm:text-base font-medium text-base-content break-words min-w-0">{value}</span>
   </div>
 );
 
@@ -256,14 +256,14 @@ export const Profile: React.FC = () => {
 
       {/* SECTION 1 : INFORMATIONS PERSONNELLES */}
       <div className="card bg-base-100 border border-base-300 shadow-sm">
-        <div className="card-body">
-          <div className="flex items-center justify-between mb-6">
+        <div className="card-body p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div className="flex items-center gap-3">
               <User size={22} className="text-success" />
-              <h2 className="text-xl font-semibold text-base-content">Informations personnelles</h2>
+              <h2 className="text-lg sm:text-xl font-semibold text-base-content leading-tight">Informations personnelles</h2>
             </div>
             {!isEditing && (
-              <button onClick={() => setIsEditing(true)} className="btn btn-ghost btn-sm gap-2">
+              <button onClick={() => setIsEditing(true)} className="btn btn-ghost btn-sm gap-2 min-h-10">
                 <Edit2 size={16} />Modifier
               </button>
             )}
@@ -320,11 +320,11 @@ export const Profile: React.FC = () => {
                 />
               </div>
 
-              <div className="flex gap-3 pt-4">
-                <button onClick={handleSave} disabled={isSaving} className="btn btn-success">
+              <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4">
+                <button onClick={handleSave} disabled={isSaving} className="btn btn-success w-full sm:w-auto min-h-11">
                   {isSaving ? <><span className="loading loading-spinner" />Enregistrement...</> : <><Check size={18} />Enregistrer</>}
                 </button>
-                <button onClick={() => { setIsEditing(false); setSaveError(null); }} disabled={isSaving} className="btn btn-ghost">
+                <button onClick={() => { setIsEditing(false); setSaveError(null); }} disabled={isSaving} className="btn btn-ghost w-full sm:w-auto min-h-11">
                   <X size={18} />Annuler
                 </button>
               </div>
@@ -335,30 +335,30 @@ export const Profile: React.FC = () => {
 
       {/* SECTION 2 : ABONNEMENT */}
       <div className="card bg-base-100 border border-base-300 shadow-sm">
-        <div className="card-body">
-          <div className="flex items-center justify-between mb-6">
+        <div className="card-body p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div className="flex items-center gap-3">
               <CreditCard size={22} className="text-success" />
-              <h2 className="text-xl font-semibold text-base-content">Abonnement</h2>
+              <h2 className="text-lg sm:text-xl font-semibold text-base-content leading-tight">Abonnement</h2>
             </div>
-            <button onClick={handleRefresh} disabled={isRefreshing} className="btn btn-ghost btn-sm gap-2 text-base-content/60">
+            <button onClick={handleRefresh} disabled={isRefreshing} className="btn btn-ghost btn-sm gap-2 text-base-content/60 min-h-10">
               <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />Actualiser
             </button>
           </div>
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <p className="font-bold text-lg">
+              <p className="font-bold text-base sm:text-lg leading-snug break-words">
                 {isMonthlyUnlimited ? 'Abonnement Mensuel Illimité' : 'Paiement à l’usage (Pay-As-You-Go)'}
               </p>
-              <p className="text-sm text-base-content/60 mt-1">
+              <p className="text-sm text-base-content/60 mt-1 break-words">
                 {isMonthlyUnlimited
                   ? 'Vous bénéficiez d’analyses illimitées sur l’ensemble de vos fichiers Excel.'
                   : 'Vous consommez des jetons à chaque analyse effectuée.'}
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {isMonthlyUnlimited ? (
                 <span className={`badge ${isExpired ? 'badge-error' : 'badge-success'} badge-lg p-3 font-semibold`}>
                   {isExpired ? 'Abonnement expiré' : 'Actif'}
@@ -382,14 +382,14 @@ export const Profile: React.FC = () => {
                       </p>
                     </div>
                   </div>
-                  <button onClick={handleRedirectToBilling} className="btn btn-error btn-sm gap-2 shrink-0">
+                  <button onClick={handleRedirectToBilling} className="btn btn-error btn-sm gap-2 shrink-0 min-h-10 w-full sm:w-auto">
                     Se réabonner <ExternalLink size={16} />
                   </button>
                 </div>
               ) : (
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-4 bg-base-200/50 rounded-xl">
                   <div>
-                    <span className="text-xs text-base-content/50 uppercase font-semibold tracking-wider block">
+                    <span className="text-xs text-base-content/50 uppercase font-semibold tracking-wider block break-words">
                       Date d'expiration / Renouvellement
                     </span>
                     <span className="text-base font-semibold text-base-content mt-1 block">
@@ -398,9 +398,9 @@ export const Profile: React.FC = () => {
                   </div>
 
                   {subInfo && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <Clock size={18} className="text-success" />
-                      <span className="font-bold text-success">
+                      <span className="font-bold text-success break-words">
                         {subInfo.text}
                       </span>
                     </div>
@@ -415,13 +415,13 @@ export const Profile: React.FC = () => {
       {/* SECTION 3 : PORTEFEUILLE DE JETONS */}
       {!isMonthlyUnlimited && (
         <div className={`card border shadow-sm ${isLowTokens ? 'bg-warning/5 border-warning/30' : 'bg-base-100 border-base-300'}`}>
-          <div className="card-body">
-            <div className="flex items-center justify-between mb-6">
+          <div className="card-body p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
               <div className="flex items-center gap-3">
                 <Coins size={22} className={isLowTokens ? 'text-warning' : 'text-success'} />
-                <h2 className="text-xl font-semibold text-base-content">Portefeuille de jetons</h2>
+                <h2 className="text-lg sm:text-xl font-semibold text-base-content leading-tight">Portefeuille de jetons</h2>
               </div>
-              <button onClick={handleRefresh} disabled={isRefreshing} className="btn btn-ghost btn-sm gap-2 text-base-content/60">
+              <button onClick={handleRefresh} disabled={isRefreshing} className="btn btn-ghost btn-sm gap-2 text-base-content/60 min-h-10">
                 <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />Actualiser
               </button>
             </div>
@@ -429,13 +429,13 @@ export const Profile: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-bold text-base-content">{tokenBalance || 5}</span>
-                  <span className="text-lg text-base-content/60">jetons disponibles</span>
+                  <span className="text-3xl sm:text-4xl font-bold text-base-content">{tokenBalance || 5}</span>
+                  <span className="text-base sm:text-lg text-base-content/60">jetons disponibles</span>
                 </div>
                 <p className="text-sm text-base-content/60 mt-2">Utilisables pour l'ensemble de vos traitements analytiques.</p>
               </div>
 
-              <button onClick={handleRedirectToBilling} className="btn btn-success gap-2">
+              <button onClick={handleRedirectToBilling} className="btn btn-success gap-2 w-full sm:w-auto min-h-11">
                 Acheter des crédits <ExternalLink size={16} />
               </button>
             </div>
@@ -452,10 +452,10 @@ export const Profile: React.FC = () => {
 
       {/* SECTION 4 : SÉCURITÉ */}
       <div className="card bg-base-100 border border-base-300 shadow-sm">
-        <div className="card-body">
-          <div className="flex items-center gap-3 mb-6">
+        <div className="card-body p-4 sm:p-6">
+          <div className="flex items-center gap-3 mb-6 min-w-0">
             <Shield size={22} className="text-success" />
-            <h2 className="text-xl font-semibold text-base-content">Sécurité & Accès</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-base-content leading-tight">Sécurité & Accès</h2>
           </div>
 
           {passwordSuccess && (
@@ -466,12 +466,12 @@ export const Profile: React.FC = () => {
           )}
 
           {!isChangingPassword ? (
-            <div className="flex items-center justify-between p-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-2">
               <div>
                 <p className="font-medium">Mot de passe</p>
-                <p className="text-sm text-base-content/60 mt-1">Gérez l'accès à votre compte</p>
+                <p className="text-sm text-base-content/60 mt-1 break-words">Gérez l'accès à votre compte</p>
               </div>
-              <button onClick={() => setIsChangingPassword(true)} className="btn btn-outline btn-sm gap-2">
+              <button onClick={() => setIsChangingPassword(true)} className="btn btn-outline btn-sm gap-2 min-h-10 w-full sm:w-auto">
                 <KeyRound size={16} /> Modifiez votre mot de passe
               </button>
             </div>
@@ -522,8 +522,8 @@ export const Profile: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-4">
-                <button onClick={handlePasswordSave} disabled={isPasswordSaving} className="btn btn-success">
+              <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4">
+                <button onClick={handlePasswordSave} disabled={isPasswordSaving} className="btn btn-success w-full sm:w-auto min-h-11">
                   {isPasswordSaving ? <><span className="loading loading-spinner" />Mise à jour...</> : <><Lock size={18} />Mettre à jour le mot de passe</>}
                 </button>
                 <button
@@ -548,12 +548,8 @@ export const Profile: React.FC = () => {
   // ---- CAS NON AUTHENTIFIÉ (PLEINE HAUTEUR, SANS SCROLL, OVERLAY CENTRÉ) ----
   if (!isAuthenticated) {
     return (
-      <div className="p-8 max-w-4xl mx-auto h-[calc(100vh-5rem)] min-h-[500px] flex flex-col overflow-hidden">
+      <div className="w-full max-w-4xl mx-auto p-4 sm:p-6 md:p-8 h-[calc(100vh-5rem)] min-h-[500px] flex flex-col overflow-hidden">
         {/* En-tête */}
-        <div className="flex items-center gap-3 mb-6 shrink-0">
-          <User className="text-base-content/60" size={22} />
-          <h1 className="text-xl font-bold">Mon Profil</h1>
-        </div>
 
         {/* Zone relative occupant tout le reste de la hauteur sans scroll */}
         <div className="relative flex-1 overflow-hidden rounded-2xl">
@@ -564,11 +560,11 @@ export const Profile: React.FC = () => {
 
           {/* Overlay centré verticalement et horizontalement sur tout l'espace */}
           <div className="absolute inset-0 flex items-center justify-center p-4">
-            <div className="bg-base-100/90 backdrop-blur-md border border-base-300 rounded-2xl shadow-xl p-8 text-center max-w-sm w-full">
+            <div className="bg-base-100/90 backdrop-blur-md border border-base-300 rounded-2xl shadow-xl p-5 sm:p-8 text-center max-w-sm w-full">
               <div className="inline-flex items-center justify-center w-14 h-14 bg-success/10 rounded-full mb-4">
                 <LogIn className="text-success" size={28} />
               </div>
-              <h3 className="text-xl font-bold mb-2">Connexion requise</h3>
+              <h3 className="text-lg sm:text-xl font-bold mb-2">Connexion requise</h3>
               <p className="text-base-content/60 text-sm mb-6">
                 Connectez-vous pour consulter et gérer les informations de votre profil.
               </p>
@@ -584,11 +580,7 @@ export const Profile: React.FC = () => {
 
   // ---- CAS AUTHENTIFIÉ (FLUX NORMAL AVEC SCROLL) ----
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <User className="text-base-content/60" size={22} />
-        <h1 className="text-xl font-bold">Mon Profil</h1>
-      </div>
+    <div className="w-full max-w-4xl mx-auto p-4 sm:p-6 md:p-8">
       {renderProfileContent()}
     </div>
   );

@@ -77,11 +77,11 @@ export const History: React.FC = () => {
   // ---- NON CONNECTÉ ----
   if (!isAuthenticated) {
     return (
-      <div className="p-8 max-w-6xl mx-auto">
+      <div className="w-full max-w-6xl mx-auto p-4 sm:p-6 md:p-8">
         {/* Titre */}
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-3 mb-6 min-w-0">
           <HistoryIcon className="text-base-content/60" size={22} />
-          <h1 className="text-xl font-bold">Historique des analyses</h1>
+          <h1 className="text-lg sm:text-xl font-bold leading-tight">Historique des analyses</h1>
         </div>
 
         {/* Zone avec historique fictif flouté + overlay */}
@@ -94,20 +94,20 @@ export const History: React.FC = () => {
               { name: 'budget_q1.xlsx', date: '2 janvier 2025', tokens: 1 },
             ].map((item, i) => (
               <div key={i} className="card bg-base-100 border border-base-300 shadow-sm">
-                <div className="card-body py-4 px-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+                <div className="card-body py-4 px-4 sm:px-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
+                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                       <FileSpreadsheet className="text-success" size={22} />
                       <div>
-                        <p className="font-semibold">{item.name}</p>
+                        <p className="font-semibold break-all">{item.name}</p>
                         <p className="text-xs text-base-content/50 mt-0.5">{item.date} · {item.tokens} jeton{item.tokens > 1 ? 's' : ''}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                       <div className="flex items-center gap-1.5 text-success text-sm font-medium">
                         <CheckCircle2 size={14} />Terminée
                       </div>
-                      <div className="btn btn-sm btn-success gap-2 opacity-50">
+                      <div className="btn btn-sm btn-success gap-2 opacity-50 min-h-10">
                         <BarChart3 size={14} />Voir le rapport
                       </div>
                     </div>
@@ -118,12 +118,12 @@ export const History: React.FC = () => {
           </div>
 
           {/* Overlay connexion par-dessus */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="bg-base-100 border border-base-300 rounded-2xl shadow-lg p-8 text-center max-w-sm w-full mx-4">
+          <div className="absolute inset-0 flex items-center justify-center p-2 sm:p-4">
+            <div className="bg-base-100 border border-base-300 rounded-2xl shadow-lg p-5 sm:p-8 text-center max-w-sm w-full mx-2 sm:mx-4">
               <div className="inline-flex items-center justify-center w-14 h-14 bg-success/10 rounded-full mb-4">
                 <LogIn className="text-success" size={28} />
               </div>
-              <h3 className="text-xl font-bold mb-2">Connexion requise</h3>
+              <h3 className="text-lg sm:text-xl font-bold mb-2">Connexion requise</h3>
               <p className="text-base-content/60 text-sm mb-5">
                 Connectez-vous pour accéder à l'historique de vos analyses.
               </p>
@@ -138,16 +138,16 @@ export const History: React.FC = () => {
   }
 
   if (isLoading) return (
-    <div className="p-8 flex justify-center items-center">
+    <div className="p-4 sm:p-8 flex justify-center items-center">
       <span className="loading loading-spinner loading-lg text-success"></span>
     </div>
   );
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
+    <div className="w-full max-w-6xl mx-auto p-4 sm:p-6 md:p-8">
+      <div className="flex items-center gap-3 mb-6 min-w-0">
         <HistoryIcon className="text-base-content/60" size={22} />
-        <h1 className="text-xl font-bold">Historique des analyses</h1>
+        <h1 className="text-lg sm:text-xl font-bold leading-tight">Historique des analyses</h1>
         {analyses.length > 0 && (
           <span className="badge badge-neutral badge-sm">{analyses.length}</span>
         )}
@@ -155,10 +155,10 @@ export const History: React.FC = () => {
 
       {analyses.length === 0 ? (
         <div className="card bg-base-100 border border-base-300 shadow-sm">
-          <div className="card-body text-center py-16">
+          <div className="card-body text-center py-10 sm:py-16 px-4 sm:px-6">
             <HistoryIcon className="mx-auto mb-4 text-base-content/30" size={48} />
-            <h3 className="text-lg font-semibold mb-2">Aucune analyse pour le moment</h3>
-            <p className="text-base-content/50 mb-6">Vos analyses apparaîtront ici après votre première analyse</p>
+            <h3 className="text-base sm:text-lg font-semibold mb-2">Aucune analyse pour le moment</h3>
+            <p className="text-sm sm:text-base text-base-content/50 mb-6">Vos analyses apparaîtront ici après votre première analyse</p>
             <button onClick={() => navigate('/analysis')} className="btn btn-success btn-sm mx-auto">
               <BarChart3 size={16} />Lancer une analyse
             </button>
@@ -168,15 +168,15 @@ export const History: React.FC = () => {
         <div className="space-y-3">
           {analyses.map((analysis) => (
             <div key={analysis.id} className="card bg-base-100 border border-base-300 shadow-sm hover:shadow-md transition-shadow">
-              <div className="card-body py-4 px-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
+              <div className="card-body py-4 px-4 sm:px-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                     <FileSpreadsheet className="text-success flex-shrink-0" size={22} />
                     <div>
-                      <h3 className="font-semibold">{analysis.file_name}</h3>
-                      <div className="flex items-center gap-3 mt-0.5">
+                      <h3 className="font-semibold break-all">{analysis.file_name}</h3>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 min-w-0">
                         {analysis.created_at && (
-                          <p className="text-xs text-base-content/50 flex items-center gap-1">
+                          <p className="text-xs text-base-content/50 flex items-center gap-1 min-w-0 flex-wrap">
                             <Clock size={11} />
                             {new Date(analysis.created_at).toLocaleDateString('fr-FR', {
                               day: '2-digit', month: 'long', year: 'numeric',
@@ -192,15 +192,15 @@ export const History: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                     {getStatusBadge(analysis.status)}
                     {analysis.status.toLowerCase() === 'completed' && (
-                      <button onClick={() => navigate(`/dashboard/${analysis.id}`)} className="btn btn-sm btn-success gap-2">
+                      <button onClick={() => navigate(`/dashboard/${analysis.id}`)} className="btn btn-sm btn-success gap-2 min-h-10">
                         <BarChart3 size={14} />Voir le rapport
                       </button>
                     )}
                     {(analysis.status.toLowerCase() === 'processing' || analysis.status.toLowerCase() === 'pending') && (
-                      <button className="btn btn-sm btn-ghost btn-disabled" disabled>En cours...</button>
+                      <button className="btn btn-sm btn-ghost btn-disabled min-h-10" disabled>En cours...</button>
                     )}
                   </div>
                 </div>

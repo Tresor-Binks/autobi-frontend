@@ -27,18 +27,3 @@ body {
   display: none;
 }
 
-@media (max-width: 500px) {
-  #root {
-    display: none;
-  }
-  #mobile-block {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    padding: 2rem;
-    text-align: center;
-    background: #f9fafb;
-  }
-}

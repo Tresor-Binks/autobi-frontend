@@ -109,10 +109,8 @@ export const FileUploadStep: React.FC<FileUploadStepProps> = ({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">Sélectionnez votre fichier Excel</h2>
-        <p className="text-base-content/70">
-          Formats acceptés : .xlsx, .xls, .csv (max 10 Mo)
-        </p>
+        <h2 className="text-2xl font-bold mb-2">Sélectionnez votre fichier</h2>
+
       </div>
 
       {!file && (
