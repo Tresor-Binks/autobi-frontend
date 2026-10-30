@@ -375,18 +375,18 @@ function KpiIcon({ icon }: { icon?: string }) {
 
 const KpiCard: React.FC<{ kpi: KPI }> = ({ kpi }) => {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow min-w-0">
       <div className="flex items-start justify-between mb-3">
         <div className="p-2 bg-emerald-50 rounded-lg"><KpiIcon icon={kpi.icon} /></div>
       </div>
-      <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">{kpi.label}</p>
-      <p className="text-2xl font-bold text-gray-900 leading-none">
+      <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1 break-words">{kpi.label}</p>
+      <p className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight break-words">
         {kpi.value}
         {kpi.unit && !String(kpi.value).toLowerCase().includes(String(kpi.unit).toLowerCase()) && (
           <span className="text-sm font-normal text-gray-400 ml-1">{kpi.unit}</span>
         )}
       </p>
-      {kpi.description && <p className="text-xs text-gray-400 mt-2 leading-relaxed">{kpi.description}</p>}
+      {kpi.description && <p className="text-xs text-gray-400 mt-2 leading-relaxed break-words">{kpi.description}</p>}
     </div>
   );
 };
@@ -396,7 +396,7 @@ const ChartCard: React.FC<{ chart: ChartItem }> = ({ chart }) => {
   const chartData = buildChartJsData(chart);
   const chartOpts = buildChartOptions(chart);
   if (!chartData) return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex items-center justify-center h-80">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm flex items-center justify-center h-64 sm:h-80 min-w-0">
       <p className="text-gray-400 text-sm">Données insuffisantes pour ce graphique</p>
     </div>
   );
@@ -408,19 +408,19 @@ const ChartCard: React.FC<{ chart: ChartItem }> = ({ chart }) => {
       default: return <BarChart3 size={14} className="text-amber-500" />;
     }
   };
-  const pieDoughnutOpts = { responsive: true, maintainAspectRatio: false, animation: { duration: 700 }, plugins: { legend: { position: 'right' as const, labels: { padding: 14, font: { size: 11 }, boxWidth: 12 } }, tooltip: chartOpts.plugins.tooltip } };
+  const pieDoughnutOpts = { responsive: true, maintainAspectRatio: false, animation: { duration: 700 }, onResize: (context: any, size: any) => { context.options.plugins.legend.position = size.width < 420 ? 'bottom' : 'right'; }, plugins: { legend: { position: 'right' as const, labels: { padding: 10, font: { size: 10 }, boxWidth: 10 } }, tooltip: chartOpts.plugins.tooltip } };
   const scatterOpts = { ...chartOpts, plugins: { ...chartOpts.plugins, tooltip: { ...chartOpts.plugins.tooltip, mode: 'point' as const, intersect: true } } };
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-      <div className="px-5 pt-5 pb-3">
-        <div className="flex items-center gap-2 mb-1">
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow min-w-0 w-full">
+      <div className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3 min-w-0">
+        <div className="flex flex-wrap items-center gap-2 mb-1 min-w-0">
           {getTypeIcon()}
-          <h3 className="font-semibold text-sm text-gray-800 flex-1">{chart.title}</h3>
-          <span className="text-xs text-gray-300 uppercase tracking-widest">{chart.type}</span>
+          <h3 className="font-semibold text-sm text-gray-800 flex-1 min-w-0 break-words">{chart.title}</h3>
+          <span className="text-xs text-gray-300 uppercase tracking-widest shrink-0">{chart.type}</span>
         </div>
-        {chart.insight && <p className="text-xs text-emerald-600 font-medium bg-emerald-50 px-2.5 py-1 rounded-full inline-block mt-1">✦ {chart.insight}</p>}
+        {chart.insight && <p className="text-xs text-emerald-600 font-medium bg-emerald-50 px-2.5 py-1 rounded-lg inline-block mt-1 max-w-full break-words">✦ {chart.insight}</p>}
       </div>
-      <div className="px-4 pb-2" style={{ height: 280 }}>
+      <div className="px-2 sm:px-4 pb-2 w-full min-w-0 relative" style={{ height: 280 }}>
         {chart.type === 'bar' && <Bar data={chartData} options={chartOpts as any} />}
         {chart.type === 'line' && <Line data={chartData} options={chartOpts as any} />}
         {chart.type === 'pie' && <Pie data={chartData} options={pieDoughnutOpts as any} />}
@@ -433,7 +433,7 @@ const ChartCard: React.FC<{ chart: ChartItem }> = ({ chart }) => {
             <span className="flex items-center gap-1.5"><Zap size={11} className="text-emerald-500" />Analyse détaillée</span>
             {showDetail ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
           </button>
-          {showDetail && <div className="px-5 pb-4 text-sm text-gray-500 leading-relaxed border-t border-gray-50 pt-3">{chart.description}</div>}
+          {showDetail && <div className="px-4 sm:px-5 pb-4 text-sm text-gray-500 leading-relaxed border-t border-gray-50 pt-3 break-words">{chart.description}</div>}
         </div>
       )}
     </div>
@@ -444,7 +444,7 @@ const InsightCard: React.FC<{ insight: InsightItem; index: number }> = ({ insigh
   const colors = ['border-l-emerald-400 bg-emerald-50/40','border-l-blue-400 bg-blue-50/40','border-l-amber-400 bg-amber-50/40','border-l-violet-400 bg-violet-50/40','border-l-rose-400 bg-rose-50/40','border-l-teal-400 bg-teal-50/40'];
   const dotColors = ['bg-emerald-400','bg-blue-400','bg-amber-400','bg-violet-400','bg-rose-400','bg-teal-400'];
   return (
-    <div className={`border-l-4 rounded-r-xl p-4 ${colors[index % colors.length]}`}>
+    <div className={`border-l-4 rounded-r-xl p-3 sm:p-4 min-w-0 break-words ${colors[index % colors.length]}`}>
       <div className="flex items-start gap-2 mb-2">
         <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${dotColors[index % dotColors.length]}`} />
         <h4 className="font-semibold text-sm text-gray-800">{insight.title}</h4>
@@ -471,14 +471,14 @@ const ReportContent: React.FC<{ analysis: any }> = ({ analysis }) => {
   const metadata = analysis.metadata || {};
   const fileName = analysis.file_name?.replace(/\.[^/.]+$/, '') || 'Analyse';
   return (
-    <div className="bg-gray-50 min-h-screen p-6 space-y-5">
-      <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-        <div className="flex items-start justify-between">
+    <div className="bg-gray-50 min-h-screen p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-5 min-w-0 w-full overflow-x-hidden">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 shadow-sm min-w-0">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 min-w-0">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">{summaryObj.title || fileName}</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 break-words">{summaryObj.title || fileName}</h2>
             <p className="text-sm text-gray-400 mt-1">{(metadata.row_count || 0).toLocaleString('fr-FR')} lignes · {metadata.column_count || 0} colonnes · {new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
           </div>
-          <span className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200"><Zap size={11} /> Analysé par l'IA</span>
+          <span className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 self-start shrink-0"><Zap size={11} /> Analysé par l'IA</span>
         </div>
         {summaryObj.description && <p className="text-sm text-gray-600 leading-relaxed mt-4 pt-4 border-t border-gray-100">{summaryObj.description}</p>}
         {summaryObj.key_takeaways && summaryObj.key_takeaways.length > 0 && (
@@ -486,7 +486,7 @@ const ReportContent: React.FC<{ analysis: any }> = ({ analysis }) => {
             {summaryObj.key_takeaways.map((t, i) => (
               <div key={i} className="flex items-start gap-2">
                 <span className="text-emerald-500 font-bold text-xs mt-0.5">✦</span>
-                <p className="text-sm text-gray-600">{t}</p>
+                <p className="text-sm text-gray-600 break-words min-w-0">{t}</p>
               </div>
             ))}
           </div>
@@ -495,7 +495,7 @@ const ReportContent: React.FC<{ analysis: any }> = ({ analysis }) => {
       {kpis.length > 0 && (
         <div>
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Indicateurs clés</p>
-          <div className={`grid gap-4 ${kpis.length === 1 ? 'grid-cols-1' : kpis.length === 2 ? 'grid-cols-2' : kpis.length === 3 ? 'grid-cols-3' : 'grid-cols-2 md:grid-cols-4'}`}>
+          <div className={`grid gap-4 ${kpis.length === 1 ? 'grid-cols-1' : kpis.length === 2 ? 'grid-cols-1 sm:grid-cols-2' : kpis.length === 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-4'}`}>
             {kpis.map(kpi => <KpiCard key={kpi.id} kpi={kpi} />)}
           </div>
         </div>
@@ -503,7 +503,7 @@ const ReportContent: React.FC<{ analysis: any }> = ({ analysis }) => {
       {charts.length > 0 && (
         <div>
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Visualisations ({charts.length})</p>
-          <div className={`grid gap-5 ${charts.length === 1 ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
+          <div className={`grid gap-4 sm:gap-5 min-w-0 ${charts.length === 1 ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
             {charts.map(chart => <ChartCard key={chart.id} chart={chart} />)}
           </div>
         </div>
@@ -516,7 +516,7 @@ const ReportContent: React.FC<{ analysis: any }> = ({ analysis }) => {
           </div>
         </div>
       )}
-      <div className="bg-white border border-gray-200 rounded-xl px-5 py-3 flex justify-between text-xs text-gray-300">
+      <div className="bg-white border border-gray-200 rounded-xl px-4 sm:px-5 py-3 flex flex-col sm:flex-row sm:flex-wrap sm:justify-between gap-2 text-xs text-gray-300 min-w-0 break-words">
         <span>AutoBI · {analysis.file_name}</span>
         <span>Analyse #{analysis.analysis_id} · {analysis.tokens_consumed || 0} jeton(s)</span>
         <span className="text-green-700">L'IA d'autoBI peut faire des erreurs, une vérification peut etre nécéssaire</span>
@@ -740,31 +740,31 @@ export const Dashboard: React.FC = () => {
         }
       ` }} />
       {/* NAVBAR */}
-      <div className="no-print bg-white border-b border-gray-200 px-6 py-3 sticky top-0 z-20 shadow-sm">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/history')} className="btn btn-ghost btn-sm gap-2"><ArrowLeft size={16} /> Historique</button>
+      <div className="no-print bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sticky top-0 z-20 shadow-sm">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-wrap">
+            <button onClick={() => navigate('/history')} className="btn btn-ghost btn-sm gap-2 min-h-10"><ArrowLeft size={16} /> Historique</button>
             <div className="h-5 w-px bg-gray-200" />
             <div>
-              <h1 className="text-base font-bold text-gray-900 leading-tight">{summaryObj.title || fileName}</h1>
+              <h1 className="text-sm sm:text-base font-bold text-gray-900 leading-tight break-words">{summaryObj.title || fileName}</h1>
               <p className="text-xs text-gray-400">{(metadata.row_count || 0).toLocaleString('fr-FR')} lignes · {metadata.column_count || 0} colonnes</p>
             </div>
             <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200"><Zap size={10} /> IA</span>
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => { loadAnalysis(); refreshUser(); }} className="btn btn-ghost btn-sm" title="Rafraîchir"><RefreshCw size={15} /></button>
+          <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto sm:justify-end">
+            <button onClick={() => { loadAnalysis(); refreshUser(); }} className="btn btn-ghost btn-sm min-h-10" title="Rafraîchir"><RefreshCw size={15} /></button>
 
             {/* Bouton Imprimer */}
             <button
               onClick={handlePrint}
-              className="btn btn-outline btn-sm gap-2"
+              className="btn btn-outline btn-sm gap-2 min-h-10"
               title="Imprimer le rapport"
             >
               <Printer size={15} /> Imprimer
             </button>
 
             {/* Bouton PowerPoint — téléchargement direct */}
-            <button onClick={handleExportPPTX} disabled={exportingPPTX} className="btn btn-success btn-sm gap-2" title="Télécharger en PowerPoint">
+            <button onClick={handleExportPPTX} disabled={exportingPPTX} className="btn btn-success btn-sm gap-2 min-h-10" title="Télécharger en PowerPoint">
               {exportingPPTX
                 ? <><span className="loading loading-spinner loading-xs" />PPTX...</>
                 : <><Download size={15} />PowerPoint</>}
