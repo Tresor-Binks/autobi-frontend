@@ -174,80 +174,47 @@ export const Sidebar: React.FC<SidebarProps> = ({
           paddingBottom: 'env(safe-area-inset-bottom)',
         }}
       >
-        <div className="grid grid-cols-5 items-end px-1 pt-2 pb-1">
-
+        <div className="grid grid-cols-5 items-center max-w-lg mx-auto px-4 sm:px-6 pt-2 pb-2">
           {mobileMenuItems.map((item) => (
             <NavLink
               key={item.id}
               to={item.path}
               end={item.id === 'home'}
               aria-label={item.label}
+              title={item.label}
               className={({ isActive }) => `
-                relative flex flex-col
-                items-center justify-center
-                gap-1
-                min-w-0
-                py-1.5 px-0.5
+                relative flex items-center justify-center
+                min-w-0 min-h-11
                 rounded-xl
                 transition-all duration-200
-                ${item.id === 'analysis' ? '-translate-y-3' : ''}
                 ${
                   isActive
                     ? 'text-success'
-                    : 'text-base-content/45 hover:text-base-content/80'
+                    : 'text-base-content/55 hover:text-base-content/85'
                 }
+                ${item.id === 'analysis' ? '-translate-y-1' : ''}
               `}
             >
               {({ isActive }) => (
-                <>
-                  {/* INDICATEUR ACTIF */}
-                  {isActive && (
-                    <span className="absolute -top-2 w-7 h-[3px] rounded-full bg-success" />
-                  )}
-
-                  {/* ICÔNE */}
-                  <span
-                    className={`
-                      flex items-center justify-center
-                      ${item.id === 'analysis' ? 'w-12 h-12 rounded-full bg-success text-white shadow-lg' : 'w-9 h-7 rounded-xl'}
-                      transition-all duration-200
-                      ${
-                        item.id !== 'analysis' && isActive
-                          ? 'bg-success/10'
-                          : item.id !== 'analysis'
-                            ? 'bg-transparent'
-                            : ''
-                      }
-                    `}
-                  >
-                    <item.icon
-                      size={item.id === 'analysis' ? 25 : 20}
-                      strokeWidth={item.id === 'analysis' ? 2.5 : isActive ? 2.4 : 1.8}
-                    />
-                  </span>
-
-                  {/* LIBELLÉ */}
-                  <span
-                    className={`
-                      text-[9px] sm:text-[10px]
-                      leading-tight
-                      text-center
-                      whitespace-nowrap
-                      transition-all
-                      ${
-                        isActive
-                          ? 'font-bold'
-                          : 'font-medium'
-                      }
-                    `}
-                  >
-                    {item.label}
-                  </span>
-                </>
+                <span
+                  className={`
+                    flex items-center justify-center
+                    transition-all duration-200
+                    ${
+                      item.id === 'analysis'
+                        ? 'w-12 h-12 rounded-full bg-success text-white shadow-md shadow-success/20'
+                        : `w-11 h-11 rounded-xl ${isActive ? 'bg-success/10' : 'bg-transparent'}`
+                    }
+                  `}
+                >
+                  <item.icon
+                    size={item.id === 'analysis' ? 26 : 25}
+                    strokeWidth={2.6}
+                  />
+                </span>
               )}
             </NavLink>
           ))}
-
         </div>
       </nav>
     </>
