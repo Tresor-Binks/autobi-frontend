@@ -76,12 +76,12 @@ const InfoRow: React.FC<{
   label: string;
   value: string;
 }> = ({ icon, label, value }) => (
-  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4 py-4 border-b border-base-200 last:border-0 min-w-0">
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-4 py-3.5 sm:py-4 border-b border-base-200 last:border-0 min-w-0">
     <div className="flex items-center gap-3 text-base-content/60 min-w-0">
-      {icon}
-      <span className="font-medium">{label}</span>
+      <span className="shrink-0">{icon}</span>
+      <span className="font-medium text-sm sm:text-base">{label}</span>
     </div>
-    <span className="text-sm sm:text-base font-medium text-base-content break-words min-w-0">{value}</span>
+    <span className="text-sm sm:text-base font-medium text-base-content break-words min-w-0 pl-[30px] sm:pl-0">{value}</span>
   </div>
 );
 
@@ -246,7 +246,7 @@ export const Profile: React.FC = () => {
   // RENDU : CONTENU DU PROFIL (UTILISÉ EN ARRIÈRE-PLAN OU DIRECTEMENT)
   // ============================================================================
   const renderProfileContent = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 min-w-0">
       {saveSuccess && (
         <div className="alert alert-success shadow-sm">
           <Check size={20} />
@@ -257,10 +257,10 @@ export const Profile: React.FC = () => {
       {/* SECTION 1 : INFORMATIONS PERSONNELLES */}
       <div className="card bg-base-100 border border-base-300 shadow-sm">
         <div className="card-body p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6 min-w-0">
+            <div className="flex items-center gap-3 min-w-0">
               <User size={22} className="text-success" />
-              <h2 className="text-lg sm:text-xl font-semibold text-base-content leading-tight">Informations personnelles</h2>
+              <h2 className="text-base sm:text-xl font-semibold text-base-content leading-tight">Informations personnelles</h2>
             </div>
             {!isEditing && (
               <button onClick={() => setIsEditing(true)} className="btn btn-ghost btn-sm gap-2 min-h-10">
@@ -339,14 +339,14 @@ export const Profile: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div className="flex items-center gap-3">
               <CreditCard size={22} className="text-success" />
-              <h2 className="text-lg sm:text-xl font-semibold text-base-content leading-tight">Abonnement</h2>
+              <h2 className="text-base sm:text-xl font-semibold text-base-content leading-tight">Abonnement</h2>
             </div>
             <button onClick={handleRefresh} disabled={isRefreshing} className="btn btn-ghost btn-sm gap-2 text-base-content/60 min-h-10">
               <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />Actualiser
             </button>
           </div>
 
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 min-w-0">
             <div>
               <p className="font-bold text-base sm:text-lg leading-snug break-words">
                 {isMonthlyUnlimited ? 'Abonnement Mensuel Illimité' : 'Paiement à l’usage (Pay-As-You-Go)'}
@@ -358,7 +358,7 @@ export const Profile: React.FC = () => {
               </p>
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
               {isMonthlyUnlimited ? (
                 <span className={`badge ${isExpired ? 'badge-error' : 'badge-success'} badge-lg p-3 font-semibold`}>
                   {isExpired ? 'Abonnement expiré' : 'Actif'}
@@ -419,7 +419,7 @@ export const Profile: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
               <div className="flex items-center gap-3">
                 <Coins size={22} className={isLowTokens ? 'text-warning' : 'text-success'} />
-                <h2 className="text-lg sm:text-xl font-semibold text-base-content leading-tight">Portefeuille de jetons</h2>
+                <h2 className="text-base sm:text-xl font-semibold text-base-content leading-tight">Portefeuille de jetons</h2>
               </div>
               <button onClick={handleRefresh} disabled={isRefreshing} className="btn btn-ghost btn-sm gap-2 text-base-content/60 min-h-10">
                 <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />Actualiser
@@ -428,7 +428,7 @@ export const Profile: React.FC = () => {
 
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
-                <div className="flex items-baseline gap-2">
+                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                   <span className="text-3xl sm:text-4xl font-bold text-base-content">{tokenBalance || 5}</span>
                   <span className="text-base sm:text-lg text-base-content/60">jetons disponibles</span>
                 </div>
@@ -453,9 +453,9 @@ export const Profile: React.FC = () => {
       {/* SECTION 4 : SÉCURITÉ */}
       <div className="card bg-base-100 border border-base-300 shadow-sm">
         <div className="card-body p-4 sm:p-6">
-          <div className="flex items-center gap-3 mb-6 min-w-0">
+          <div className="flex items-center gap-3 mb-4 sm:mb-6 min-w-0">
             <Shield size={22} className="text-success" />
-            <h2 className="text-lg sm:text-xl font-semibold text-base-content leading-tight">Sécurité & Accès</h2>
+            <h2 className="text-base sm:text-xl font-semibold text-base-content leading-tight">Sécurité & Accès</h2>
           </div>
 
           {passwordSuccess && (
@@ -548,11 +548,11 @@ export const Profile: React.FC = () => {
   // ---- CAS NON AUTHENTIFIÉ (PLEINE HAUTEUR, SANS SCROLL, OVERLAY CENTRÉ) ----
   if (!isAuthenticated) {
     return (
-      <div className="w-full max-w-4xl mx-auto p-4 sm:p-6 md:p-8 h-[calc(100vh-5rem)] min-h-[500px] flex flex-col overflow-hidden">
+      <div className="w-full max-w-4xl mx-auto p-3 sm:p-6 md:p-8 h-auto min-h-[calc(100dvh-5rem)] sm:h-[calc(100vh-5rem)] sm:min-h-[500px] flex flex-col overflow-visible sm:overflow-hidden">
         {/* En-tête */}
 
         {/* Zone relative occupant tout le reste de la hauteur sans scroll */}
-        <div className="relative flex-1 overflow-hidden rounded-2xl">
+        <div className="relative flex-1 min-h-[500px] sm:min-h-0 overflow-hidden rounded-2xl">
           {/* Contenu flouté verrouillé en hauteur */}
           <div className="blur-sm opacity-50 pointer-events-none select-none h-full overflow-hidden">
             {renderProfileContent()}
@@ -580,7 +580,7 @@ export const Profile: React.FC = () => {
 
   // ---- CAS AUTHENTIFIÉ (FLUX NORMAL AVEC SCROLL) ----
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 sm:p-6 md:p-8">
+    <div className="w-full max-w-4xl mx-auto min-w-0 p-3 sm:p-6 md:p-8">
       {renderProfileContent()}
     </div>
   );

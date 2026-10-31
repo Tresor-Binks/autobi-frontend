@@ -1,5 +1,5 @@
 /**
- * ÉTAPE 1 : SÉLECTION DU FICHIER EXCEL
+ * ÉTAPE 1 : SÉLECTION DU FICHIER
  */
 
 import React, { useState } from 'react';
@@ -64,9 +64,9 @@ export const FileUploadStep: React.FC<FileUploadStepProps> = ({
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold mb-2">Sélectionnez votre fichier Excel</h2>
+          <h2 className="text-2xl font-bold mb-2">Sélectionnez votre fichier</h2>
           <p className="text-base-content/70">
-            Formats acceptés : .xlsx, .xls, .csv (max 10 Mo)
+            Formats acceptés : .xlsx, .xls, .csv, .json, .tsv, .parquet, .xml (max 10 Mo)
           </p>
         </div>
 
@@ -87,7 +87,7 @@ export const FileUploadStep: React.FC<FileUploadStepProps> = ({
               </div>
               <h3 className="text-xl font-bold">Connexion requise</h3>
               <p className="text-base-content/70 max-w-xs">
-                Vous devez être connecté pour analyser un fichier Excel.
+                Vous devez être connecté pour analyser un fichier.
               </p>
               <button
                 onClick={onRequestAuth}
@@ -110,11 +110,14 @@ export const FileUploadStep: React.FC<FileUploadStepProps> = ({
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold mb-2">Sélectionnez votre fichier</h2>
-
+        <p className="text-base-content/70">
+          Formats acceptés : .xlsx, .xls, .csv, .json, .tsv, .parquet, .xml (max 10 Mo)
+        </p>
       </div>
 
       {!file && (
         <div
+          onDragEnter={(e) => { e.preventDefault(); setIsDragging(true); }}
           onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
@@ -127,7 +130,7 @@ export const FileUploadStep: React.FC<FileUploadStepProps> = ({
           <p className="text-base-content/60 mb-4">ou</p>
           <input
             type="file"
-            accept=".xlsx,.xls,.csv"
+            accept=".xlsx,.xls,.csv,.json,.tsv,.parquet,.xml"
             onChange={(e) => e.target.files && handleFileSelect(e.target.files[0])}
             className="hidden"
             id="file-upload"

@@ -71,7 +71,7 @@ const NotifItem: React.FC<{
       {/* Contenu */}
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-1">
-          <p className={`text-xs font-semibold leading-snug ${!notif.read ? 'text-base-content' : 'text-base-content/60'}`}>
+          <p className={`min-w-0 break-words pr-2 text-xs font-semibold leading-snug ${!notif.read ? 'text-base-content' : 'text-base-content/60'}`}>
             {notif.title}
           </p>
           <button
@@ -81,7 +81,7 @@ const NotifItem: React.FC<{
             <X size={12} />
           </button>
         </div>
-        <p className="text-xs text-base-content/55 mt-0.5 leading-relaxed">{notif.message}</p>
+        <p className="text-xs text-base-content/55 mt-0.5 leading-relaxed break-words [overflow-wrap:anywhere]">{notif.message}</p>
         <div className="flex items-center justify-between mt-1.5">
           <span className="text-[11px] text-base-content/35">{formatRelativeTime(notif.timestamp)}</span>
           <div className="flex items-center gap-2">
@@ -167,16 +167,16 @@ const NotificationBell: React.FC = () => {
 
       {open && (
         <div
-          className="absolute right-0 top-full mt-2 w-76 bg-base-100 border border-base-300 rounded-xl shadow-xl z-50 overflow-hidden"
-          style={{ width: '300px', animation: 'panelOpen 0.18s ease-out' }}
+          className="absolute right-0 top-full mt-2 bg-base-100 border border-base-300 rounded-xl shadow-xl z-50 overflow-hidden w-[min(300px,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] max-h-[75dvh] flex flex-col"
+          style={{ width: 'min(300px, calc(100vw - 2rem))', animation: 'panelOpen 0.18s ease-out' }}
         >
           {/* En-tête */}
-          <div className="flex items-center justify-between px-4 py-2.5 border-b border-base-200">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold">Notifications</span>
+          <div className="flex items-center justify-between gap-2 px-3 sm:px-4 py-2.5 border-b border-base-200 min-w-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-sm font-semibold whitespace-nowrap">Notifications</span>
               {count > 0 && <span className="badge badge-success badge-xs">{count}</span>}
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-shrink-0">
               {count > 0 && (
                 <button onClick={markAllAsRead} className="btn btn-ghost btn-xs gap-1 text-xs opacity-60 hover:opacity-100">
                   <CheckCheck size={12} />Tout lire
@@ -191,7 +191,7 @@ const NotificationBell: React.FC = () => {
           </div>
 
           {/* Liste */}
-          <div className="max-h-80 overflow-y-auto">
+          <div className="min-h-0 max-h-[60dvh] overflow-y-auto overscroll-contain">
             {notifications.length === 0 ? (
               <div className="text-center py-8">
                 <Bell className="mx-auto mb-2 text-base-content/20" size={28} />
@@ -272,7 +272,7 @@ export const TopBar: React.FC<{ theme: string; onThemeToggle: () => void }> = ({
 
   return (
     <>
-      <div className="bg-base-100 border-b border-base-300 px-6 py-3 flex items-center justify-end gap-3">
+      <div className="bg-base-100 border-b border-base-300 px-3 sm:px-6 py-3 flex items-center justify-end gap-2 sm:gap-3 min-w-0">
 
         {/* Bouton Nouvelle analyse — uniquement si connecté */}
         {isAuthenticated && (

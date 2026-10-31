@@ -119,29 +119,29 @@ export const Analysis: React.FC = () => {
 
   const renderStepper = () => (
     <div className="mb-8">
-      <div className="flex items-center justify-between max-w-4xl mx-auto">
+      <div className="flex items-center justify-between max-w-4xl mx-auto min-w-0">
         {steps.map((step, index) => {
           const isCompleted = currentStep > step.number;
           const isCurrent = currentStep === step.number;
           return (
             <React.Fragment key={step.number}>
-              <div className="flex flex-col items-center">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all ${
+              <div className="flex flex-col items-center min-w-0">
+                <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 transition-all ${
                   isCompleted ? 'bg-success border-success text-success-content'
                     : isCurrent ? 'border-success text-success'
                     : 'border-base-300 text-base-content/40'
                 }`}>
-                  {isCompleted ? <CheckCircle2 size={24} /> : <span className="font-bold">{step.number}</span>}
+                  {isCompleted ? <CheckCircle2 size={24} className="w-4 h-4 sm:w-6 sm:h-6" /> : <span className="font-bold text-xs sm:text-base">{step.number}</span>}
                 </div>
-                <div className="mt-2 text-center">
-                  <p className={`text-sm font-semibold ${isCurrent ? 'text-success' : 'text-base-content/70'}`}>
+                <div className="mt-1 sm:mt-2 text-center">
+                  <p className={`text-[10px] sm:text-sm font-semibold leading-tight ${isCurrent ? 'text-success' : 'text-base-content/70'}`}>
                     {step.label}
                   </p>
-                  <p className="text-xs text-base-content/50">{step.description}</p>
+                  <p className="text-[9px] sm:text-xs leading-tight text-base-content/50">{step.description}</p>
                 </div>
               </div>
               {index < steps.length - 1 && (
-                <div className="flex-1 h-0.5 bg-base-300 mx-4 mb-8">
+                <div className="flex-1 min-w-1 h-0.5 bg-base-300 mx-1 sm:mx-4 mb-5 sm:mb-8">
                   <div className="h-full bg-success transition-all duration-500" style={{ width: isCompleted ? '100%' : '0%' }} />
                 </div>
               )}
@@ -206,27 +206,27 @@ export const Analysis: React.FC = () => {
   // ── RENDU PRINCIPAL ──────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-base-200 p-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen min-w-0 bg-base-200 p-3 sm:p-8">
+      <div className="max-w-6xl mx-auto min-w-0">
         {currentStep < 5 && renderStepper()}
 
         <div className="card bg-base-100 shadow-sm border border-base-300">
-          <div className="card-body p-8">
+          <div className="card-body min-w-0 p-4 sm:p-8">
             {renderCurrentStep()}
           </div>
         </div>
 
         {/* Boutons de navigation — étape 3 uniquement */}
         {currentStep === 3 && (
-          <div className="flex justify-between mt-6">
+          <div className="flex flex-col sm:flex-row justify-between gap-3 mt-6">
             {canGoBack && (
-              <button onClick={handleBack} className="btn btn-outline">
+              <button onClick={handleBack} className="btn btn-outline w-full sm:w-auto">
                 Retour
               </button>
             )}
             <button
               onClick={handleNextToReview}
-              className="btn btn-success ml-auto"
+              className="btn btn-success w-full sm:w-auto sm:ml-auto"
               disabled={selectedInsights.length === 0}
             >
               Continuer ({selectedInsights.length} insight{selectedInsights.length > 1 ? 's' : ''})
@@ -237,7 +237,7 @@ export const Analysis: React.FC = () => {
         {/* Bouton retour — étapes 2 et 4 */}
         {(currentStep === 2 || currentStep === 4) && canGoBack && (
           <div className="flex mt-6">
-            <button onClick={handleBack} className="btn btn-outline">
+            <button onClick={handleBack} className="btn btn-outline w-full sm:w-auto">
               Retour
             </button>
           </div>

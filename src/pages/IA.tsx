@@ -139,25 +139,25 @@ export const IA: React.FC = () => {
   // ---- NON CONNECTÉ ----
   if (!isAuthenticated) {
     return (
-      <div className="p-8 max-w-5xl mx-auto">
+      <div className="p-3 sm:p-6 lg:p-8 max-w-5xl mx-auto w-full min-w-0">
         <div className="relative">
           <div className="opacity-30 pointer-events-none select-none card bg-base-100 border border-base-300 shadow-sm">
-            <div className="card-body py-16 text-center">
+            <div className="card-body py-12 sm:py-16 text-center">
               <MessageSquare className="mx-auto mb-4 text-base-content/30" size={48} />
-              <div className="h-6 w-48 bg-base-300 rounded mx-auto mb-3" />
-              <div className="h-4 w-64 bg-base-200 rounded mx-auto" />
+              <div className="h-6 w-48 max-w-full bg-base-300 rounded mx-auto mb-3" />
+              <div className="h-4 w-64 max-w-full bg-base-200 rounded mx-auto" />
             </div>
           </div>
-          <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg bg-base-100/80 backdrop-blur-sm">
-            <div className="text-center space-y-4 p-8">
+          <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg bg-base-100/80 backdrop-blur-sm p-3">
+            <div className="text-center space-y-4 p-4 sm:p-8 max-w-full">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-success/10 rounded-full mb-2">
                 <LogIn className="text-success" size={32} />
               </div>
               <h3 className="text-xl font-bold">Connexion requise</h3>
-              <p className="text-base-content/70 max-w-xs">
+              <p className="text-base-content/70 max-w-xs mx-auto">
                 Connectez-vous pour accéder à l'assistant IA.
               </p>
-              <button onClick={onRequestAuth} className="btn btn-success">
+              <button onClick={onRequestAuth} className="btn btn-success w-full sm:w-auto">
                 <LogIn size={18} />Se connecter
               </button>
             </div>
@@ -168,7 +168,7 @@ export const IA: React.FC = () => {
   }
 
   if (isLoadingAnalyses) return (
-    <div className="p-8 flex justify-center items-center">
+    <div className="p-4 sm:p-8 flex justify-center items-center">
       <span className="loading loading-spinner loading-lg text-success"></span>
     </div>
   );
@@ -176,16 +176,16 @@ export const IA: React.FC = () => {
   // ---- AUCUNE ANALYSE ----
   if (analyses.length === 0) {
     return (
-      <div className="p-8 max-w-5xl mx-auto">
+      <div className="p-3 sm:p-6 lg:p-8 max-w-5xl mx-auto w-full min-w-0">
         <div className="card bg-base-100 border border-base-300 shadow-sm">
-          <div className="card-body text-center py-16">
+          <div className="card-body text-center py-12 sm:py-16 px-4 sm:px-6">
             <AlertCircle className="mx-auto mb-4 text-warning" size={48} />
             <h2 className="text-xl font-semibold mb-2">Aucune analyse disponible</h2>
             <p className="text-base-content/70 mb-6 max-w-sm mx-auto">
               Vous devez d'abord effectuer au moins une analyse pour pouvoir
               poser des questions à l'assistant IA.
             </p>
-            <button onClick={() => navigate('/analysis')} className="btn btn-success mx-auto">
+            <button onClick={() => navigate('/analysis')} className="btn btn-success mx-auto w-full sm:w-auto">
               <Upload size={18} />Lancer une analyse
             </button>
           </div>
@@ -197,10 +197,10 @@ export const IA: React.FC = () => {
   // ---- SÉLECTION D'ANALYSE ----
   if (!selectedAnalysis) {
     return (
-      <div className="p-8 max-w-5xl mx-auto space-y-6">
-        <div className="alert border border-info/30 bg-info/5">
+      <div className="p-3 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-4 sm:space-y-6 w-full min-w-0">
+        <div className="alert border border-info/30 bg-info/5 items-start">
           <Sparkles className="text-info flex-shrink-0" size={20} />
-          <div>
+          <div className="min-w-0">
             <h3 className="font-semibold">Assistant IA</h3>
             <p className="text-sm">
               Sélectionnez une analyse pour poser des questions sur vos données.
@@ -210,19 +210,19 @@ export const IA: React.FC = () => {
         </div>
 
         <div className="card bg-base-100 border border-base-300 shadow-sm">
-          <div className="card-body">
+          <div className="card-body p-4 sm:p-6">
             <h2 className="text-lg font-semibold mb-4">Choisissez une analyse</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {analyses.map((analysis) => (
                 <div
                   key={analysis.id}
                   onClick={() => handleSelectAnalysis(analysis)}
-                  className="p-4 border-2 border-base-300 rounded-lg cursor-pointer hover:border-success hover:bg-success/5 transition-all"
+                  className="p-3 sm:p-4 border-2 border-base-300 rounded-lg cursor-pointer hover:border-success hover:bg-success/5 transition-all min-w-0"
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-3 min-w-0">
                     <FileSpreadsheet className="text-success flex-shrink-0 mt-1" size={22} />
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold truncate">{analysis.file_name}</h3>
+                      <h3 className="font-semibold break-words [overflow-wrap:anywhere]">{analysis.file_name}</h3>
                       {analysis.created_at && (
                         <p className="text-xs text-base-content/50 flex items-center gap-1 mt-1">
                           <Clock size={10} />
@@ -231,7 +231,7 @@ export const IA: React.FC = () => {
                           })}
                         </p>
                       )}
-                      <div className="flex items-center gap-2 mt-2">
+                      <div className="flex items-center gap-2 mt-2 flex-wrap">
                         <span className="badge badge-success badge-sm flex items-center gap-1">
                           <CheckCircle2 size={10} />Terminée
                         </span>
@@ -254,25 +254,25 @@ export const IA: React.FC = () => {
 
   // ---- CHAT ACTIF ----
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-4">
+    <div className="p-3 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-3 sm:space-y-4 w-full min-w-0">
 
       {/* Analyse sélectionnée */}
       <div className="card bg-success/5 border border-success/30 shadow-sm">
-        <div className="card-body py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Sparkles className="text-success" size={18} />
-              <div>
+        <div className="card-body p-3 sm:py-3 sm:px-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
+            <div className="flex items-start sm:items-center gap-3 min-w-0">
+              <Sparkles className="text-success flex-shrink-0 mt-0.5 sm:mt-0" size={18} />
+              <div className="min-w-0">
                 <span className="text-sm font-medium">Analyse : </span>
-                <span className="font-semibold">{selectedAnalysis.file_name}</span>
+                <span className="font-semibold break-words [overflow-wrap:anywhere]">{selectedAnalysis.file_name}</span>
                 {selectedAnalysis.created_at && (
-                  <span className="ml-2 text-xs text-base-content/50">
+                  <span className="block sm:inline sm:ml-2 text-xs text-base-content/50">
                     ({new Date(selectedAnalysis.created_at).toLocaleDateString('fr-FR')})
                   </span>
                 )}
               </div>
             </div>
-            <button onClick={handleChangeAnalysis} className="btn btn-ghost btn-sm">
+            <button onClick={handleChangeAnalysis} className="btn btn-ghost btn-sm min-h-10 w-full sm:w-auto shrink-0">
               Changer
             </button>
           </div>
@@ -281,15 +281,15 @@ export const IA: React.FC = () => {
 
       {/* Bannière service indisponible */}
       {serviceUnavailable && (
-        <div className="alert alert-warning">
-          <WifiOff size={18} />
-          <div className="flex-1">
+        <div className="alert alert-warning items-start">
+          <WifiOff size={18} className="shrink-0" />
+          <div className="flex-1 min-w-0">
             <p className="font-semibold text-sm">Service IA indisponible</p>
-            <p className="text-xs mt-0.5">{serviceError}</p>
+            <p className="text-xs mt-0.5 break-words">{serviceError}</p>
           </div>
           <button
             onClick={() => { setServiceUnavailable(false); setServiceError(null); }}
-            className="btn btn-ghost btn-xs"
+            className="btn btn-ghost btn-xs shrink-0"
           >
             <X size={14} />
           </button>
@@ -297,15 +297,15 @@ export const IA: React.FC = () => {
       )}
 
       {/* Zone de chat */}
-      <div className="card bg-base-100 border border-base-300 shadow-sm">
-        <div className="card-body p-0 flex flex-col" style={{ height: '560px' }}>
+      <div className="card bg-base-100 border border-base-300 shadow-sm overflow-hidden">
+        <div className="card-body p-0 flex flex-col h-[min(560px,calc(100dvh-13rem))] min-h-[380px] sm:h-[560px] sm:min-h-0">
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-6 space-y-4">
             {messages.length === 0 ? (
-              <div className="text-center py-10">
+              <div className="text-center py-6 sm:py-10">
                 <MessageSquare className="mx-auto mb-4 text-base-content/30" size={44} />
-                <h3 className="text-lg font-semibold mb-2">
+                <h3 className="text-base sm:text-lg font-semibold mb-2 break-words">
                   Posez vos questions sur {selectedAnalysis.file_name}
                 </h3>
                 <p className="text-base-content/50 mb-6 text-sm">
@@ -322,7 +322,7 @@ export const IA: React.FC = () => {
                     <button
                       key={idx}
                       onClick={() => setInput(suggestion)}
-                      className="block w-full text-left px-4 py-2.5 bg-base-200 hover:bg-base-300 rounded-lg text-sm transition-colors"
+                      className="block w-full text-left px-3 sm:px-4 py-2.5 bg-base-200 hover:bg-base-300 rounded-lg text-sm transition-colors"
                     >
                       {suggestion}
                     </button>
@@ -333,7 +333,7 @@ export const IA: React.FC = () => {
               <>
                 {messages.map((msg, idx) => (
                   <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[78%] p-4 rounded-xl ${
+                    <div className={`max-w-[92%] sm:max-w-[78%] min-w-0 p-3 sm:p-4 rounded-xl break-words [overflow-wrap:anywhere] ${
                       msg.role === 'user'
                         ? 'bg-success text-success-content'
                         : msg.role === 'error'
@@ -375,21 +375,22 @@ export const IA: React.FC = () => {
           </div>
 
           {/* Saisie */}
-          <div className="border-t border-base-300 p-4">
-            <div className="flex gap-2">
+          <div className="border-t border-base-300 p-3 sm:p-4 shrink-0">
+            <div className="flex gap-2 min-w-0">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Posez votre question sur cette analyse..."
-                className="input input-bordered flex-1"
+                className="input input-bordered flex-1 min-w-0"
                 disabled={isLoading}
               />
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || isLoading}
-                className="btn btn-success"
+                className="btn btn-success shrink-0"
+                aria-label="Envoyer le message"
               >
                 {isLoading
                   ? <span className="loading loading-spinner loading-sm" />
@@ -397,7 +398,7 @@ export const IA: React.FC = () => {
                 }
               </button>
             </div>
-            <p className="text-xs text-base-content/40 mt-2">
+            <p className="text-xs text-base-content/40 mt-2 break-words">
               💡 Basé sur l'analyse de <strong>{selectedAnalysis.file_name}</strong>
             </p>
           </div>

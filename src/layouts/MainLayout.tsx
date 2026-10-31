@@ -43,7 +43,7 @@ export const MainLayout: React.FC = () => {
         <TopBar theme={theme} onThemeToggle={toggleTheme} />
 
         {/* Contenu des pages — passe onRequestAuth via context */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto pb-24 md:pb-0">
           <Outlet context={{ onRequestAuth: () => setShowAuthModal(true) } satisfies LayoutContext} />
         </main>
       </div>

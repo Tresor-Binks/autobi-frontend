@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
@@ -55,7 +54,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       {/* ==========================================
-          DESKTOP SIDEBAR
+          DESKTOP SIDEBAR (INCHANGÉE)
       ========================================== */}
 
       <aside
@@ -157,7 +156,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
 
       {/* ==========================================
-          MOBILE BOTTOM NAVIGATION
+          MOBILE BOTTOM NAVIGATION (AMÉLIORÉE)
       ========================================== */}
 
       <nav
@@ -166,55 +165,69 @@ export const Sidebar: React.FC<SidebarProps> = ({
           md:hidden
           fixed bottom-0 left-0 right-0
           z-50
-          bg-base-100/95 backdrop-blur-xl
-          border-t border-base-300/80
-          shadow-[0_-4px_20px_rgba(0,0,0,0.06)]
+          bg-base-100/90 backdrop-blur-2xl
+          border-t border-base-300/60
+          shadow-[0_-10px_30px_rgba(0,0,0,0.08)]
         "
         style={{
           paddingBottom: 'env(safe-area-inset-bottom)',
         }}
       >
-        <div className="grid grid-cols-5 items-center max-w-lg mx-auto px-4 sm:px-6 pt-2 pb-2">
-          {mobileMenuItems.map((item) => (
-            <NavLink
-              key={item.id}
-              to={item.path}
-              end={item.id === 'home'}
-              aria-label={item.label}
-              title={item.label}
-              className={({ isActive }) => `
-                relative flex items-center justify-center
-                min-w-0 min-h-11
-                rounded-xl
-                transition-all duration-200
-                ${
-                  isActive
-                    ? 'text-success'
-                    : 'text-base-content/55 hover:text-base-content/85'
-                }
-                ${item.id === 'analysis' ? '-translate-y-1' : ''}
-              `}
-            >
-              {({ isActive }) => (
-                <span
-                  className={`
-                    flex items-center justify-center
-                    transition-all duration-200
-                    ${
-                      item.id === 'analysis'
-                        ? 'w-12 h-12 rounded-full bg-success text-white shadow-md shadow-success/20'
-                        : `w-11 h-11 rounded-xl ${isActive ? 'bg-success/10' : 'bg-transparent'}`
-                    }
-                  `}
-                >
-                  <item.icon
-                    size={item.id === 'analysis' ? 26 : 25}
-                    strokeWidth={2.6}
-                  />
-                </span>
-              )}
-            </NavLink>
-          ))}
+        <div className="flex items-center justify-around max-w-md mx-auto px-3 py-2">
+          {mobileMenuItems.map((item) => {
+            const isActionBtn = item.id === 'analysis';
+
+            return (
+              <NavLink
+                key={item.id}
+                to={item.path}
+                end={item.id === 'home'}
+                aria-label={item.label}
+                className={({ isActive }) => `
+                  relative flex flex-col items-center justify-center
+                  group transition-all duration-300
+                  ${isActionBtn ? '-mt-5' : 'py-1'}
+                `}
+              >
+                {({ isActive }) => (
+                  <>
+                    {/* Bouton central mis en avant (Action principale) */}
+                    {isActionBtn ? (
+                      <div className="relative flex items-center justify-center w-14 h-14 rounded-full bg-success text-white shadow-xl shadow-success/30 hover:scale-105 active:scale-95 transition-all duration-300 ring-4 ring-base-100">
+                        <item.icon size={26} strokeWidth={2.5} />
+                      </div>
+                    ) : (
+                      /* Boutons de navigation classiques avec effet pilule actif et micro-labels */
+                      <div
+                        className={`
+                          flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-2xl transition-all duration-300
+                          ${
+                            isActive
+                              ? 'text-success bg-success/10 scale-105 font-medium'
+                              : 'text-base-content/50 hover:text-base-content hover:bg-base-200/50'
+                          }
+                        `}
+                      >
+                        <item.icon
+                          size={22}
+                          strokeWidth={isActive ? 2.5 : 1.8}
+                          className="transition-transform duration-300"
+                        />
+                        <span className="text-[10px] tracking-tight leading-none">
+                          {item.label}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Petit indicateur discret pour le bouton central si actif */}
+                    {isActionBtn && isActive && (
+                      <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-success"></span>
+                    )}
+                  </>
+                )}
+              </NavLink>
+            );
+          })}
         </div>
       </nav>
     </>
