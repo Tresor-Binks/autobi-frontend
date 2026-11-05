@@ -13,7 +13,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useLayoutContext } from '../layouts/MainLayout';
 
 // URL racine du backend FastAPI
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://api.autobi.app';
 
 // ============================================================================
 // HELPERS DE DATE & TEMPS RESTANT

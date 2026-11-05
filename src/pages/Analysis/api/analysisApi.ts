@@ -84,7 +84,7 @@ export interface AnalysisProgressResponse {
 // HELPERS
 // ============================================================================
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://api.autobi.app';
 
 function getAuthHeaders(): Record<string, string> {
   const token = localStorage.getItem('auth_token');

@@ -7,7 +7,7 @@ import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { authApi } from '../api/auth';
 import type { AuthUser, LoginCredentials, RegisterData } from '../api/types';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://api.autobi.app';
 
 // ============================================================================
 // TYPES

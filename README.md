@@ -61,7 +61,7 @@ frontend/
 ## Variables d'environnement (.env)
 
 ```env
-VITE_API_URL=http://127.0.0.1:8000
+VITE_API_URL=https://api.autobi.app
 ```
 
 ---
@@ -335,7 +335,7 @@ npm run preview
 
 | Variable | Valeur par défaut | Description |
 |---|---|---|
-| `VITE_API_URL` | `http://127.0.0.1:8000` | URL du backend FastAPI |
+| `VITE_API_URL` | `https://api.autobi.app` | URL du backend FastAPI |
 
 ---
 
