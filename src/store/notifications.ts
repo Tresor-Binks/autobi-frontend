@@ -137,7 +137,7 @@ export function notifyLowTokens(balance: number) {
     title: 'Solde de jetons faible',
     message: `Il ne vous reste que ${balance} jeton${balance > 1 ? 's' : ''}. Rechargez pour continuer vos analyses.`,
     actionLabel: 'Acheter des jetons',
-    actionExternal: 'https://test.autoi.com',
+    actionExternal: 'https://autobi.app/credits',
   });
 }
 

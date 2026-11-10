@@ -251,7 +251,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
                 </p>
               </div>
               <a
-                href="https://autobi-app/credits"
+                href="https://autobi.app/credits"
                 className="btn btn-error btn-sm gap-2"
               >
                 <ExternalLink size={14} />
@@ -295,7 +295,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
           </a>
         ) : (
           <a
-            href="https://autobi-app/credits"
+            href="https://autobi.app/credits"
             className="btn btn-error btn-lg gap-2"
           >
             <ExternalLink size={20} />

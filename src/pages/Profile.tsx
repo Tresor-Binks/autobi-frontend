@@ -140,7 +140,7 @@ export const Profile: React.FC = () => {
   };
 
   const handleRedirectToBilling = () => {
-    window.open('https://autobi-app.com', '_blank', 'noopener,noreferrer');
+    window.open('https://autobi.app', '_blank', 'noopener,noreferrer');
   };
 
   // --- MISE À JOUR PROFIL ---
