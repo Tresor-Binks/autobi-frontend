@@ -1,6 +1,6 @@
 /**
  * DASHBOARD — AutoBI
- * Export PDF : jsPDF programmatique (zéro capture DOM, zéro erreur oklch)
+ * Impression : rapport HTML dédié + capture des graphiques Chart.js (fenêtre d'impression)
  * Export PPTX : PptxGenJS (génération côté frontend, téléchargement direct)
  */
 
@@ -70,6 +70,74 @@ function formatNumber(val: any): string {
   return n % 1 === 0 ? n.toLocaleString('fr-FR') : n.toLocaleString('fr-FR', { maximumFractionDigits: 2 });
 }
 
+// Coupe un texte proprement (fin de phrase ou de mot), jamais au milieu d'un mot
+function clip(text: any, max: number): string {
+  const t = String(text ?? '').trim();
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max);
+  const stop = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? '));
+  if (stop > max * 0.5) return cut.slice(0, stop + 1);
+  const space = cut.lastIndexOf(' ');
+  return (space > max * 0.5 ? cut.slice(0, space) : cut) + '…';
+}
+function esc(s: any): string {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+// "+28,6 % (2026-01-04 → 2026-03-01)" → { main: "+28,6 %", period: "2026-01-04 → 2026-03-01" }
+function splitTrend(v?: string | null): { main: string; period: string } {
+  const t = String(v ?? '').trim();
+  const m = t.match(/^(.*?)\s*\((.*)\)\s*$/);
+  return m ? { main: m[1].trim(), period: m[2].trim() } : { main: t, period: '' };
+}
+// "Constat chiffré → Action concrète" → { fact, action }
+function splitTakeaway(t: string): { fact: string; action: string } {
+  const str = String(t ?? '');
+  const i = str.indexOf('→');
+  return i > 0 ? { fact: str.slice(0, i).trim(), action: str.slice(i + 1).trim() } : { fact: str, action: '' };
+}
+// "Action : ... Pourquoi : ... À vérifier : ..." → sections ; null si texte libre
+function parseInterpretation(text?: string): { label: string; body: string }[] | null {
+  if (!text) return null;
+  const re = /(Action|Pourquoi|[ÀA] vérifier)\s*:\s*/gi;
+  const found: { label: string; start: number; end: number }[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    const l = m[1].toLowerCase();
+    found.push({ label: l === 'action' ? 'Action' : l === 'pourquoi' ? 'Pourquoi' : 'À vérifier', start: m.index, end: m.index + m[0].length });
+  }
+  if (!found.length) return null;
+  const parts = found
+    .map((f, i) => ({ label: f.label, body: text.slice(f.end, i + 1 < found.length ? found[i + 1].start : text.length).trim() }))
+    .filter(p => p.body);
+  const lead = text.slice(0, found[0].start).trim();
+  if (lead) parts.unshift({ label: '', body: lead });
+  return parts.length ? parts : null;
+}
+const isInsufficient = (v?: string) => /donn[ée]es insuffisantes/i.test(v || '');
+
+// --- versions HTML (fenêtre d'impression) ---
+function interpretationHtml(text?: string): string {
+  if (!text) return '';
+  const parts = parseInterpretation(text);
+  const body = parts
+    ? parts.map(p => `<p style="margin:0 0 3px;line-height:1.5">${p.label ? `<b style="color:${p.label === 'Action' ? '#047857' : '#64748b'}">${esc(p.label)} :</b> ` : ''}${esc(p.body)}</p>`).join('')
+    : `<p style="margin:0;font-style:italic">→ ${esc(text)}</p>`;
+  return `<div style="background:#ecfdf5;border-radius:4px;padding:6px 8px;font-size:10px;color:#065f46">${body}</div>`;
+}
+function takeawayHtml(t: string): string {
+  const { fact, action } = splitTakeaway(t);
+  return `<p style="font-size:10.5px;color:#1e293b;line-height:1.5;margin:1px 0"><b>${esc(fact)}</b>${action ? ` <span style="color:#047857">→ ${esc(action)}</span>` : ''}</p>`;
+}
+function trendHtml(kpi: any): string {
+  if (!['up', 'down', 'stable'].includes(kpi?.trend)) return '';
+  const tr = splitTrend(kpi.trend_value);
+  const up = kpi.trend === 'up', down = kpi.trend === 'down';
+  const color = up ? '#047857' : down ? '#b91c1c' : '#64748b';
+  const arrow = up ? '↑' : down ? '↓' : '→';
+  const label = tr.main || (up ? 'Hausse' : down ? 'Baisse' : 'Stable');
+  return `<p style="font-size:10px;font-weight:700;color:${color};margin:0 0 4px">${arrow} ${esc(label)}${tr.period ? ` <span style="font-weight:400;color:#94a3b8">(${esc(tr.period)})</span>` : ''}</p>`;
+}
+
 const PALETTE = [
   { bg: 'rgba(16,185,129,0.8)',  border: 'rgb(16,185,129)'  },
   { bg: 'rgba(59,130,246,0.8)',  border: 'rgb(59,130,246)'  },
@@ -115,7 +183,7 @@ function buildChartOptions(chart: ChartItem) {
         callbacks: { label: (ctx: any) => { const val = ctx.parsed?.y ?? ctx.parsed; return ` ${ctx.dataset.label}: ${formatNumber(typeof val === 'object' ? val?.y : val)}`; } } },
     },
     scales: {
-      x: { stacked: opts.stacked || false, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 10 }, maxRotation: 45, maxTicksLimit: 15 }, title: opts.x_label ? { display: true, text: opts.x_label, font: { size: 11 }, color: '#9ca3af' } : undefined },
+      x: { stacked: opts.stacked || false, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 10 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 12, ...(chart.type !== 'scatter' ? { callback: function (this: any, value: any) { const l = String(this.getLabelForValue(value)); return l.length > 16 ? l.slice(0, 15) + '…' : l; } } : {}) }, title: opts.x_label ? { display: true, text: opts.x_label, font: { size: 11 }, color: '#9ca3af' } : undefined },
       y: { stacked: opts.stacked || false, grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { font: { size: 10 }, callback: (v: any) => formatNumber(v) }, title: opts.y_label ? { display: true, text: opts.y_label, font: { size: 11 }, color: '#9ca3af' } : undefined },
     },
   };
@@ -145,7 +213,7 @@ async function exportToPPTX(analysis: any, fileName: string) {
 
   const hdr = (sl:any, title:string, sub='') => {
     sl.addShape(pptx.ShapeType.rect,{x:0,y:0,w:13.33,h:1.1,fill:{color:C.dark}});
-    sl.addText(title,{x:0.55,y:0.15,w:10,h:0.6,fontSize:22,bold:true,color:C.white,fontFace:'Calibri'});
+    sl.addText(title,{x:0.55,y:0.15,w:12.2,h:0.6,fit:'shrink',fontSize:20,bold:true,color:C.white,fontFace:'Calibri'});
     if(sub) sl.addText(sub,{x:0.55,y:0.72,w:9,h:0.3,fontSize:11,color:C.accent});
     sl.addShape(pptx.ShapeType.rect,{x:0,y:1.08,w:13.33,h:0.04,fill:{color:C.greenM}});
   };
@@ -164,10 +232,10 @@ async function exportToPPTX(analysis: any, fileName: string) {
   s1.addShape(pptx.ShapeType.rect,{x:11.5,y:4.5,w:1.83,h:1.1,fill:{color:C.accent}});
   s1.addShape(pptx.ShapeType.roundRect,{x:0.55,y:0.55,w:1.5,h:0.38,fill:{color:C.greenM},rectRadius:0.05});
   s1.addText('AUTOBI',{x:0.55,y:0.55,w:1.5,h:0.38,fontSize:11,bold:true,color:C.white,align:'center',valign:'middle'});
-  s1.addText(summary.title||fileName,{x:0.55,y:1.6,w:9.5,h:1.5,fontSize:38,bold:true,color:C.white,fontFace:'Calibri',wrap:true});
+  s1.addText(summary.title||fileName,{x:0.55,y:1.6,w:9.5,h:1.5,fit:'shrink',fontSize:30,bold:true,color:C.white,fontFace:'Calibri',wrap:true});
   s1.addShape(pptx.ShapeType.rect,{x:0.55,y:3.3,w:5,h:0.04,fill:{color:C.greenM}});
-  s1.addText(summary.description?.slice(0,200)||'',{x:0.55,y:3.5,w:9.5,h:1.8,fontSize:13,color:'94A3B8',wrap:true,lineSpacingMultiple:1.3});
-  const dt=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  s1.addText(clip(summary.description,420),{x:0.55,y:3.5,w:9.5,h:1.9,fontSize:12,color:'94A3B8',wrap:true,lineSpacingMultiple:1.25});
+  const dt=new Date(analysis.created_at||Date.now()).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
   s1.addText(`${(metadata.row_count||0).toLocaleString('fr-FR')} lignes  ·  ${metadata.column_count||0} colonnes  ·  ${dt}`,{x:0.55,y:5.6,w:9,h:0.38,fontSize:11,color:'475569'});
   s1.addShape(pptx.ShapeType.roundRect,{x:0.55,y:6.35,w:3.2,h:0.45,fill:{color:'1E293B'},line:{color:C.greenM,width:1},rectRadius:0.08});
   s1.addText('Rapport généré automatiquement par AUTOBI',{x:0.55,y:6.35,w:3.2,h:0.45,fontSize:8,color:C.accent,align:'center',valign:'middle',bold:true});
@@ -181,7 +249,8 @@ async function exportToPPTX(analysis: any, fileName: string) {
       s2.addShape(pptx.ShapeType.roundRect,{x:0.5,y,w:12.33,h:0.85,fill:{color:i%2?C.white:C.light},line:{color:C.border,width:0.5},rectRadius:0.08});
       s2.addShape(pptx.ShapeType.ellipse,{x:0.65,y:y+0.2,w:0.44,h:0.44,fill:{color:C.green}});
       s2.addText(`${i+1}`,{x:0.65,y:y+0.2,w:0.44,h:0.44,fontSize:12,bold:true,color:C.white,align:'center',valign:'middle'});
-      s2.addText(tk,{x:1.28,y:y+0.18,w:11.3,h:0.5,fontSize:13,color:C.slate,wrap:true});
+      const tkp=splitTakeaway(tk);
+      s2.addText([{text:tkp.fact+(tkp.action?' ':''),options:{bold:true,color:C.slate}},...(tkp.action?[{text:'→ '+tkp.action,options:{color:C.green}}]:[])],{x:1.28,y:y+0.08,w:11.3,h:0.7,fontSize:12,wrap:true,valign:'middle'});
     });
   }
 
@@ -189,24 +258,28 @@ async function exportToPPTX(analysis: any, fileName: string) {
   if(kpis.length>0){
     const s3=pptx.addSlide(); s3.background={color:C.light};
     hdr(s3,'Indicateurs clés de performance','KPIs principaux'); ftr(s3,'KPIs');
-    const count=Math.min(kpis.length,4); const cW=12.0/count;
-    kpis.slice(0,4).forEach((kpi:any,i:number)=>{
+    const count=Math.min(kpis.length,5); const cW=(12.2-(count-1)*0.1)/count; const vSize=count>=5?16:count===4?20:24;
+    kpis.slice(0,5).forEach((kpi:any,i:number)=>{
       const x=0.66+i*(cW+0.1); const kH=5.55;
       s3.addShape(pptx.ShapeType.roundRect,{x:x+0.04,y:1.36,w:cW,h:kH,fill:{color:'E2E8F0'},rectRadius:0.12});
       s3.addShape(pptx.ShapeType.roundRect,{x,y:1.3,w:cW,h:kH,fill:{color:C.white},line:{color:C.border,width:0.5},rectRadius:0.12});
       s3.addShape(pptx.ShapeType.roundRect,{x,y:1.3,w:cW,h:0.18,fill:{color:C.chart[i%C.chart.length]},rectRadius:0.06});
       s3.addShape(pptx.ShapeType.ellipse,{x:x+0.2,y:1.65,w:0.55,h:0.55,fill:{color:C.greenL}});
       s3.addText(kpiIcon(kpi.icon),{x:x+0.2,y:1.65,w:0.55,h:0.55,fontSize:16,color:C.green,align:'center',valign:'middle'});
-      if(kpi.trend&&kpi.trend!=='stable'){
-        const up=kpi.trend==='up';
-        s3.addShape(pptx.ShapeType.roundRect,{x:x+cW-1.3,y:1.72,w:1.1,h:0.32,fill:{color:up?C.greenL:'FEE2E2'},rectRadius:0.06});
-        s3.addText((up?'↑ ':'↓ ')+(kpi.trend_value||'').slice(0,15),{x:x+cW-1.3,y:1.72,w:1.1,h:0.32,fontSize:8,bold:true,color:up?C.greenD:'991B1B',align:'center',valign:'middle'});
+      if(kpi.trend&&['up','down','stable'].includes(kpi.trend)){
+        const up=kpi.trend==='up', dn=kpi.trend==='down';
+        s3.addShape(pptx.ShapeType.roundRect,{x:x+cW-0.95,y:1.72,w:0.75,h:0.32,fill:{color:up?C.greenL:dn?'FEE2E2':'F1F5F9'},rectRadius:0.06});
+        s3.addText(up?'↑ Hausse':dn?'↓ Baisse':'→ Stable',{x:x+cW-0.95,y:1.72,w:0.75,h:0.32,fontSize:8,bold:true,color:up?C.greenD:dn?'991B1B':C.gray,align:'center',valign:'middle'});
       }
       s3.addText(kpi.label.toUpperCase(),{x:x+0.18,y:2.35,w:cW-0.3,h:0.32,fontSize:8,color:C.gray,bold:true});
       const vt=kpi.value+(kpi.unit&&!String(kpi.value).toLowerCase().includes(String(kpi.unit).toLowerCase())?` ${kpi.unit}`:'');
-      s3.addText(vt,{x:x+0.18,y:2.72,w:cW-0.3,h:0.9,fontSize:24,bold:true,color:C.dark,wrap:true,fontFace:'Calibri'});
-      s3.addShape(pptx.ShapeType.rect,{x:x+0.18,y:3.8,w:cW-0.5,h:0.02,fill:{color:C.border}});
-      if(kpi.description) s3.addText(kpi.description.slice(0,150),{x:x+0.18,y:3.95,w:cW-0.3,h:2.2,fontSize:10,color:C.gray,wrap:true,lineSpacingMultiple:1.2});
+      s3.addText(vt,{x:x+0.18,y:2.72,w:cW-0.3,h:0.8,fit:'shrink',fontSize:vSize,bold:true,color:C.dark,wrap:true,fontFace:'Calibri'});
+      const trd=splitTrend(kpi.trend_value);
+      if(kpi.trend&&['up','down','stable'].includes(kpi.trend)){
+        s3.addText((kpi.trend==='up'?'↑ ':kpi.trend==='down'?'↓ ':'→ ')+(trd.main||'')+(trd.period?'  ('+trd.period+')':''),{x:x+0.18,y:3.55,w:cW-0.3,h:0.4,fontSize:9,bold:true,color:kpi.trend==='up'?C.greenD:kpi.trend==='down'?'991B1B':C.gray,wrap:true,valign:'top'});
+      }
+      s3.addShape(pptx.ShapeType.rect,{x:x+0.18,y:4.0,w:cW-0.5,h:0.02,fill:{color:C.border}});
+      if(kpi.description) s3.addText(clip(kpi.description,230),{x:x+0.18,y:4.15,w:cW-0.3,h:2.4,fontSize:10,color:C.gray,wrap:true,lineSpacingMultiple:1.2,valign:'top'});
     });
   }
 
@@ -304,7 +377,7 @@ async function exportToPPTX(analysis: any, fileName: string) {
 
     if(chart.description){
       sc.addShape(pptx.ShapeType.rect,{x:0.5,y:6.55,w:12.33,h:0.02,fill:{color:C.border}});
-      sc.addText(chart.description.slice(0,220),{x:0.5,y:6.62,w:12.33,h:0.42,fontSize:9,color:C.gray,italic:true,wrap:true});
+      sc.addText(clip(chart.description,300),{x:0.5,y:6.6,w:12.33,h:0.5,fontSize:9,color:C.gray,italic:true,wrap:true,valign:'top'});
     }
   });
 
@@ -324,13 +397,23 @@ async function exportToPPTX(analysis: any, fileName: string) {
         si.addText(ins.title,{x:x+0.75,y:1.65,w:cW2-0.9,h:0.55,fontSize:13,bold:true,color:C.dark,wrap:true});
         if(ins.value){
           si.addShape(pptx.ShapeType.roundRect,{x:x+0.2,y:2.35,w:cW2-0.4,h:0.6,fill:{color:C.light},rectRadius:0.05});
-          si.addText(ins.value.slice(0,80),{x:x+0.3,y:2.35,w:cW2-0.5,h:0.6,fontSize:13,bold:true,color:bc,wrap:true,valign:'middle'});
+          si.addText(clip(ins.value,90),{x:x+0.3,y:2.35,w:cW2-0.5,h:0.6,fit:'shrink',fontSize:12,bold:true,color:bc,wrap:true,valign:'middle'});
         }
-        if(ins.description) si.addText(ins.description.slice(0,250),{x:x+0.2,y:3.1,w:cW2-0.4,h:2.0,fontSize:10.5,color:C.gray,wrap:true,lineSpacingMultiple:1.25});
+        if(ins.description) si.addText(clip(ins.description,260),{x:x+0.2,y:3.05,w:cW2-0.4,h:1.6,fontSize:10,color:C.gray,wrap:true,lineSpacingMultiple:1.2,valign:'top'});
         if(ins.interpretation){
-          si.addShape(pptx.ShapeType.roundRect,{x:x+0.2,y:5.3,w:cW2-0.4,h:1.3,fill:{color:C.greenL},line:{color:C.accent,width:0.5},rectRadius:0.07});
-          si.addText('RECOMMANDATION',{x:x+0.35,y:5.35,w:cW2-0.6,h:0.25,fontSize:7,bold:true,color:C.green,charSpacing:0.8});
-          si.addText(ins.interpretation.slice(0,160),{x:x+0.35,y:5.62,w:cW2-0.6,h:0.9,fontSize:10,color:C.greenD,italic:true,wrap:true});
+          const parts=parseInterpretation(ins.interpretation);
+          const runs:any[]=[];
+          if(parts){
+            parts.forEach((p:any)=>{
+              if(p.label) runs.push({text:p.label+' : ',options:{bold:true,color:p.label==='Action'?C.green:C.gray}});
+              runs.push({text:clip(p.body,170),options:{color:C.greenD,breakLine:true}});
+            });
+          } else {
+            runs.push({text:clip(ins.interpretation,420),options:{color:C.greenD,italic:true}});
+          }
+          si.addShape(pptx.ShapeType.roundRect,{x:x+0.2,y:4.75,w:cW2-0.4,h:2.1,fill:{color:C.greenL},line:{color:C.accent,width:0.5},rectRadius:0.07});
+          si.addText("PLAN D'ACTION",{x:x+0.35,y:4.8,w:cW2-0.6,h:0.25,fontSize:7,bold:true,color:C.green,charSpacing:0.8});
+          si.addText(runs,{x:x+0.35,y:5.05,w:cW2-0.6,h:1.75,fontSize:9.5,wrap:true,valign:'top'});
         }
       });
     }
@@ -374,10 +457,24 @@ function KpiIcon({ icon }: { icon?: string }) {
 }
 
 const KpiCard: React.FC<{ kpi: KPI }> = ({ kpi }) => {
+  const trend = kpi.trend === 'up' || kpi.trend === 'down' || kpi.trend === 'stable' ? kpi.trend : null;
+  const tr = splitTrend(kpi.trend_value);
+  const trendCfg = trend === 'up'
+    ? { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', Icon: TrendingUp, label: 'Hausse' }
+    : trend === 'down'
+      ? { cls: 'bg-rose-50 text-rose-700 border-rose-200', Icon: TrendingDown, label: 'Baisse' }
+      : { cls: 'bg-gray-50 text-gray-600 border-gray-200', Icon: Minus, label: 'Stable' };
+  const TrendIcon = trendCfg.Icon;
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow min-w-0">
-      <div className="flex items-start justify-between mb-3">
-        <div className="p-2 bg-emerald-50 rounded-lg"><KpiIcon icon={kpi.icon} /></div>
+    <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow min-w-0 flex flex-col">
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="p-2 bg-emerald-50 rounded-lg shrink-0"><KpiIcon icon={kpi.icon} /></div>
+        {trend && (
+          <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full border min-w-0 max-w-[75%] ${trendCfg.cls}`} title={kpi.trend_value || trendCfg.label}>
+            <TrendIcon size={12} className="shrink-0" />
+            <span className="break-words min-w-0">{tr.main || trendCfg.label}</span>
+          </span>
+        )}
       </div>
       <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1 break-words">{kpi.label}</p>
       <p className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight break-words">
@@ -386,7 +483,8 @@ const KpiCard: React.FC<{ kpi: KPI }> = ({ kpi }) => {
           <span className="text-sm font-normal text-gray-400 ml-1">{kpi.unit}</span>
         )}
       </p>
-      {kpi.description && <p className="text-xs text-gray-400 mt-2 leading-relaxed break-words">{kpi.description}</p>}
+      {trend && tr.period && <p className="text-[11px] text-gray-400 mt-1 break-words">sur {tr.period}</p>}
+      {kpi.description && <p className="text-xs text-gray-500 mt-2 leading-relaxed break-words">{kpi.description}</p>}
     </div>
   );
 };
@@ -411,16 +509,16 @@ const ChartCard: React.FC<{ chart: ChartItem }> = ({ chart }) => {
   const pieDoughnutOpts = { responsive: true, maintainAspectRatio: false, animation: { duration: 700 }, onResize: (context: any, size: any) => { context.options.plugins.legend.position = size.width < 420 ? 'bottom' : 'right'; }, plugins: { legend: { position: 'right' as const, labels: { padding: 10, font: { size: 10 }, boxWidth: 10 } }, tooltip: chartOpts.plugins.tooltip } };
   const scatterOpts = { ...chartOpts, plugins: { ...chartOpts.plugins, tooltip: { ...chartOpts.plugins.tooltip, mode: 'point' as const, intersect: true } } };
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow min-w-0 w-full">
+    <div data-chart-id={chart.id} className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow min-w-0 w-full">
       <div className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3 min-w-0">
         <div className="flex flex-wrap items-center gap-2 mb-1 min-w-0">
           {getTypeIcon()}
           <h3 className="font-semibold text-sm text-gray-800 flex-1 min-w-0 break-words">{chart.title}</h3>
-          <span className="text-xs text-gray-300 uppercase tracking-widest shrink-0">{chart.type}</span>
+          <span className="hidden sm:inline text-xs text-gray-300 uppercase tracking-widest shrink-0">{chart.type}</span>
         </div>
         {chart.insight && <p className="text-xs text-emerald-600 font-medium bg-emerald-50 px-2.5 py-1 rounded-lg inline-block mt-1 max-w-full break-words">✦ {chart.insight}</p>}
       </div>
-      <div className="px-2 sm:px-4 pb-2 w-full min-w-0 relative" style={{ height: 280 }}>
+      <div className="px-2 sm:px-4 pb-2 w-full min-w-0 relative h-64 sm:h-72">
         {chart.type === 'bar' && <Bar data={chartData} options={chartOpts as any} />}
         {chart.type === 'line' && <Line data={chartData} options={chartOpts as any} />}
         {chart.type === 'pie' && <Pie data={chartData} options={pieDoughnutOpts as any} />}
@@ -449,13 +547,21 @@ const InsightCard: React.FC<{ insight: InsightItem; index: number }> = ({ insigh
         <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${dotColors[index % dotColors.length]}`} />
         <h4 className="font-semibold text-sm text-gray-800">{insight.title}</h4>
       </div>
-      {insight.value && <p className="text-base font-bold text-gray-900 ml-4 mb-1">{insight.value}</p>}
+      {insight.value && <p className={`text-base font-bold ml-4 mb-1 break-words ${isInsufficient(insight.value) ? 'text-amber-600' : 'text-gray-900'}`}>{insight.value}</p>}
       {insight.description && <p className="text-xs text-gray-500 ml-4 leading-relaxed">{insight.description}</p>}
-      {insight.interpretation && (
-        <div className="mt-2 ml-4 pt-2 border-t border-white/60">
-          <p className="text-xs text-gray-400 italic">→ {insight.interpretation}</p>
-        </div>
-      )}
+      {insight.interpretation && (() => {
+        const parts = parseInterpretation(insight.interpretation);
+        return (
+          <div className="mt-3 ml-4 pt-2 border-t border-white/60 space-y-1.5">
+            {parts ? parts.map((p, i) => (
+              <p key={i} className="text-xs text-gray-600 leading-relaxed break-words">
+                {p.label && <span className={`font-semibold ${p.label === 'Action' ? 'text-emerald-700' : 'text-gray-500'}`}>{p.label} : </span>}
+                {p.body}
+              </p>
+            )) : <p className="text-xs text-gray-500 italic break-words">→ {insight.interpretation}</p>}
+          </div>
+        );
+      })()}
     </div>
   );
 };
@@ -471,31 +577,37 @@ const ReportContent: React.FC<{ analysis: any }> = ({ analysis }) => {
   const metadata = analysis.metadata || {};
   const fileName = analysis.file_name?.replace(/\.[^/.]+$/, '') || 'Analyse';
   return (
-    <div className="bg-gray-50 min-h-screen p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-5 min-w-0 w-full overflow-x-hidden">
+    <div className="bg-gray-50 min-h-screen p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-5 min-w-0 w-full overflow-x-hidden max-w-6xl mx-auto">
       <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 shadow-sm min-w-0">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 min-w-0">
           <div>
             <h2 className="text-lg sm:text-xl font-bold text-gray-900 break-words">{summaryObj.title || fileName}</h2>
-            <p className="text-sm text-gray-400 mt-1">{(metadata.row_count || 0).toLocaleString('fr-FR')} lignes · {metadata.column_count || 0} colonnes · {new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+            <p className="text-sm text-gray-400 mt-1">{(metadata.row_count || 0).toLocaleString('fr-FR')} lignes · {metadata.column_count || 0} colonnes · {new Date(analysis.created_at || Date.now()).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
           </div>
           <span className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 self-start shrink-0"><Zap size={11} /> Analysé par l'IA</span>
         </div>
         {summaryObj.description && <p className="text-sm text-gray-600 leading-relaxed mt-4 pt-4 border-t border-gray-100">{summaryObj.description}</p>}
         {summaryObj.key_takeaways && summaryObj.key_takeaways.length > 0 && (
           <div className="mt-4 space-y-1.5">
-            {summaryObj.key_takeaways.map((t, i) => (
-              <div key={i} className="flex items-start gap-2">
-                <span className="text-emerald-500 font-bold text-xs mt-0.5">✦</span>
-                <p className="text-sm text-gray-600 break-words min-w-0">{t}</p>
-              </div>
-            ))}
+            {summaryObj.key_takeaways.map((t, i) => {
+              const tk = splitTakeaway(t);
+              return (
+                <div key={i} className="flex items-start gap-2">
+                  <span className="text-emerald-500 font-bold text-xs mt-1">✦</span>
+                  <p className="text-sm text-gray-600 break-words min-w-0">
+                    <span className="font-semibold text-gray-800">{tk.fact}</span>
+                    {tk.action && <span className="block sm:inline text-emerald-700"> → {tk.action}</span>}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
       {kpis.length > 0 && (
         <div>
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Indicateurs clés</p>
-          <div className={`grid gap-4 ${kpis.length === 1 ? 'grid-cols-1' : kpis.length === 2 ? 'grid-cols-1 sm:grid-cols-2' : kpis.length === 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-4'}`}>
+          <div className={`grid gap-4 ${kpis.length === 1 ? 'grid-cols-1' : kpis.length === 2 ? 'grid-cols-1 sm:grid-cols-2' : kpis.length === 4 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'}`}>
             {kpis.map(kpi => <KpiCard key={kpi.id} kpi={kpi} />)}
           </div>
         </div>
@@ -503,7 +615,7 @@ const ReportContent: React.FC<{ analysis: any }> = ({ analysis }) => {
       {charts.length > 0 && (
         <div>
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Visualisations ({charts.length})</p>
-          <div className={`grid gap-4 sm:gap-5 min-w-0 ${charts.length === 1 ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
+          <div className={`grid gap-4 sm:gap-5 min-w-0 ${charts.length === 1 ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`}>
             {charts.map(chart => <ChartCard key={chart.id} chart={chart} />)}
           </div>
         </div>
@@ -511,7 +623,7 @@ const ReportContent: React.FC<{ analysis: any }> = ({ analysis }) => {
       {insights.length > 0 && (
         <div>
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Insights détaillés</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {insights.map((ins, i) => <InsightCard key={ins.id || i} insight={ins} index={i} />)}
           </div>
         </div>
@@ -555,12 +667,13 @@ export const Dashboard: React.FC = () => {
     const insights= analysis.insights|| [];
     const metadata= analysis.metadata|| {};
     const fileLabel=(analysis.file_name||'Analyse').replace(/\.[^/.]+$/,'');
-    const dateStr = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+    const dateStr = new Date(analysis.created_at||Date.now()).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
 
     // Capture les graphiques Chart.js en PNG avant d'ouvrir la fenêtre
     const canvasImages: Record<string,string> = {};
-    document.querySelectorAll<HTMLCanvasElement>('canvas').forEach((c,i) => {
-      try { canvasImages[`chart_${i}`] = c.toDataURL('image/png'); } catch(_){}
+    charts.forEach((ch:any, i:number) => {
+      const c = document.querySelector<HTMLCanvasElement>(`[data-chart-id="${ch.id}"] canvas`);
+      if (c) { try { canvasImages[`chart_${i}`] = c.toDataURL('image/png'); } catch(_){} }
     });
 
     const CHART_COLORS = ['#059669','#3B82F6','#D97706','#7C3AED','#DB2777','#0891B2','#EA580C','#4F46E5','#16A34A','#DC2626'];
@@ -570,10 +683,10 @@ export const Dashboard: React.FC = () => {
       return `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 14px;break-inside:avoid;position:relative;overflow:hidden">
         <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${CHART_COLORS[i%CHART_COLORS.length]};border-radius:12px 12px 0 0"></div>
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:8px">
-          <p style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin:0 0 6px">${kpi.label||''}</p>
+          <p style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin:0 0 6px">${esc(kpi.label)}</p>
         </div>
-        <p style="font-size:22px;font-weight:800;color:#0f172a;margin:0 0 8px;line-height:1.1">${vt}</p>
-        <p style="font-size:10px;color:#94a3b8;margin:0;line-height:1.4">${(kpi.description||'').slice(0,100)}</p>
+        <p style="font-size:22px;font-weight:800;color:#0f172a;margin:0 0 8px;line-height:1.1">${esc(vt)}</p>
+        ${trendHtml(kpi)}<p style="font-size:10px;color:#64748b;margin:0;line-height:1.4">${esc(clip(kpi.description,200))}</p>
       </div>`;
     }).join('');
 
@@ -582,22 +695,22 @@ export const Dashboard: React.FC = () => {
       const img   = canvasImages[`chart_${i}`];
       const cleanTitle = (chart.title||'').replace(/\b(BAR|LINE|PIE|DOUGHNUT|SCATTER)\b/gi,'').replace(/—\s*(Visualisation|Graphique)\s*/gi,'').trim();
       return `<div style="break-inside:avoid;margin-bottom:24px">
-        <h3 style="font-size:13px;font-weight:700;color:#0f172a;margin:0 0 4px">${cleanTitle}</h3>
-        ${chart.insight?`<div style="background:#ecfdf5;border:1px solid #34d399;border-radius:6px;padding:5px 10px;margin-bottom:8px;font-size:10px;font-weight:600;color:#065f46">✦ ${chart.insight}</div>`:''}
+        <h3 style="font-size:13px;font-weight:700;color:#0f172a;margin:0 0 4px">${esc(cleanTitle)}</h3>
+        ${chart.insight?`<div style="background:#ecfdf5;border:1px solid #34d399;border-radius:6px;padding:5px 10px;margin-bottom:8px;font-size:10px;font-weight:600;color:#065f46">✦ ${esc(chart.insight)}</div>`:''}
         ${img?`<img src="${img}" style="width:100%;max-height:220px;object-fit:contain;border-radius:8px;border:1px solid #e2e8f0" />`:'<div style="height:180px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:11px">Graphique non disponible</div>'}
-        ${chart.description?`<p style="font-size:10px;color:#64748b;font-style:italic;margin:6px 0 0;line-height:1.5">${chart.description}</p>`:''}
+        ${chart.description?`<p style="font-size:10px;color:#64748b;font-style:italic;margin:6px 0 0;line-height:1.5">${esc(chart.description)}</p>`:''}
       </div>`;
     }).join('');
 
     const insightCards = insights.map((ins:any, i:number) => `
       <div style="break-inside:avoid;border-left:3px solid ${CHART_COLORS[i%CHART_COLORS.length]};padding:10px 12px;margin-bottom:12px;background:#f8fafc;border-radius:0 8px 8px 0">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-          <p style="font-size:12px;font-weight:700;color:#0f172a;margin:0">${ins.title||''}</p>
+          <p style="font-size:12px;font-weight:700;color:#0f172a;margin:0">${esc(ins.title)}</p>
           <span style="font-size:9px;font-weight:600;background:#e2e8f0;color:#475569;padding:2px 6px;border-radius:999px">${ins.type||'analyse'}</span>
         </div>
-        ${ins.value?`<p style="font-size:13px;font-weight:800;color:${CHART_COLORS[i%CHART_COLORS.length]};margin:0 0 4px">${ins.value}</p>`:''}
-        ${ins.description?`<p style="font-size:10px;color:#64748b;margin:0 0 6px;line-height:1.5">${ins.description}</p>`:''}
-        ${ins.interpretation?`<div style="background:#ecfdf5;border-radius:4px;padding:5px 8px;font-size:10px;color:#065f46;font-style:italic">→ ${ins.interpretation}</div>`:''}
+        ${ins.value?`<p style="font-size:13px;font-weight:800;color:${CHART_COLORS[i%CHART_COLORS.length]};margin:0 0 4px">${esc(ins.value)}</p>`:''}
+        ${ins.description?`<p style="font-size:10px;color:#64748b;margin:0 0 6px;line-height:1.5">${esc(ins.description)}</p>`:''}
+        ${interpretationHtml(ins.interpretation)}
       </div>`
     ).join('');
 
@@ -644,9 +757,9 @@ export const Dashboard: React.FC = () => {
       <div class="cover">
         <div class="cover-bar"></div>
         <div style="display:inline-block;background:#10B981;color:#fff;font-size:9px;font-weight:700;padding:3px 10px;border-radius:999px;margin-bottom:16px;letter-spacing:.1em">AUTOBI</div>
-        <h1 style="font-size:24px;font-weight:800;line-height:1.2;margin-bottom:12px;max-width:80%">${summary.title||fileLabel}</h1>
+        <h1 style="font-size:24px;font-weight:800;line-height:1.2;margin-bottom:12px;max-width:80%">${esc(summary.title||fileLabel)}</h1>
         <div style="width:50px;height:2px;background:#10B981;margin-bottom:12px"></div>
-        <p style="color:#94a3b8;font-size:11px;line-height:1.6;max-width:75%">${(summary.description||'').slice(0,250)}</p>
+        <p style="color:#94a3b8;font-size:11px;line-height:1.6;max-width:85%">${esc(clip(summary.description,420))}</p>
         <p style="color:#475569;font-size:10px;margin-top:16px">${(metadata.row_count||0).toLocaleString('fr-FR')} lignes · ${metadata.column_count||0} colonnes · ${dateStr}</p>
       </div>
 
@@ -656,7 +769,7 @@ export const Dashboard: React.FC = () => {
         ${summary.key_takeaways.slice(0,5).map((t:string,i:number)=>`
           <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 10px;background:${i%2?'#fff':'#f8fafc'};border-radius:6px;margin-bottom:4px;border:1px solid #f1f5f9">
             <div style="min-width:20px;height:20px;background:#059669;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:700;flex-shrink:0">${i+1}</div>
-            <p style="font-size:10.5px;color:#1e293b;line-height:1.5;margin:1px 0">${t}</p>
+            <div style="margin:1px 0">${takeawayHtml(t)}</div>
           </div>`).join('')}
       </div>` : ''}
 
@@ -700,6 +813,7 @@ export const Dashboard: React.FC = () => {
 
     const w = window.open('','_blank','width=900,height=700');
     if(w){ w.document.write(html); w.document.close(); }
+    else { alert("La fenêtre d'impression a été bloquée par le navigateur : autorisez les fenêtres pop-up pour ce site."); }
   };
 
   const handleExportPPTX = async () => {
@@ -760,14 +874,14 @@ export const Dashboard: React.FC = () => {
               className="btn btn-outline btn-sm gap-2 min-h-10"
               title="Imprimer le rapport"
             >
-              <Printer size={15} /> Imprimer
+              <Printer size={15} /><span className="hidden sm:inline">Imprimer</span>
             </button>
 
             {/* Bouton PowerPoint — téléchargement direct */}
             <button onClick={handleExportPPTX} disabled={exportingPPTX} className="btn btn-success btn-sm gap-2 min-h-10" title="Télécharger en PowerPoint">
               {exportingPPTX
                 ? <><span className="loading loading-spinner loading-xs" />PPTX...</>
-                : <><Download size={15} />PowerPoint</>}
+                : <><Download size={15} /><span className="hidden sm:inline">PowerPoint</span></>}
             </button>
           </div>
         </div>
